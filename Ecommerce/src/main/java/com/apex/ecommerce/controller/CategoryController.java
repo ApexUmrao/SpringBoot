@@ -18,13 +18,6 @@ public class CategoryController {
     private CategoryServiceImpl categoryService;
 
 
-    //Depedency Injection
-//    private CategoryService categoryService;
-//
-//    public CategoryController(CategoryService categoryService) {
-//        this.categoryService = categoryService;
-//    }
-
     //@GetMapping("/public/categories")
     @RequestMapping(value = "/public/categories" , method = RequestMethod.GET)
     private ResponseEntity<List<Category>> getAllCategories() {
@@ -33,19 +26,16 @@ public class CategoryController {
     }
 
     @PostMapping("/public/categories")
-    //@RequestMapping(value = "/public/categories" , method = RequestMethod.POST)
     private ResponseEntity<String> createCategory(@RequestBody Category category){
         String message = categoryService.addCategory(category);
         return new ResponseEntity<>(message, HttpStatus.CREATED);
     }
 
-    //@DeleteMapping("/admin/categories/{categoryId}")
-    @RequestMapping(value = "/admin/categories/{categoryId}" , method = RequestMethod.DELETE)
+    @DeleteMapping("/admin/categories/{categoryId}")
     private ResponseEntity<String> deleteCategory(@PathVariable Integer categoryId) {
         try {
             String message = categoryService.deleteCategoryById(categoryId);
            // return ResponseEntity.ok(message);
-           // return new ResponseEntity<>(message, HttpStatus.OK);
             return ResponseEntity.status(HttpStatus.OK).body(message);
         } catch (ResponseStatusException e) {
             return new ResponseEntity<>(e.getReason(),e.getStatusCode());
@@ -53,10 +43,9 @@ public class CategoryController {
     }
 
     @PutMapping("/admin/categories/{categoryId}")
-    //@RequestMapping(value = "/admin/categories/{categoryId}" , method = RequestMethod.PUT)
     public ResponseEntity<String> updateCategory(@PathVariable Integer categoryId, @RequestBody Category category){
         try {
-            Category updatedcategory = categoryService.updateCategory(categoryId, category);
+            categoryService.updateCategory(categoryId, category);
             return new ResponseEntity<>(" Updated Category with ID : " + categoryId, HttpStatus.OK);
         }catch (ResponseStatusException e) {
             return new ResponseEntity<>(e.getReason(),e.getStatusCode());
