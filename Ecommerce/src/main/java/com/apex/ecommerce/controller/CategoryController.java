@@ -2,6 +2,7 @@ package com.apex.ecommerce.controller;
 
 import com.apex.ecommerce.model.Category;
 import com.apex.ecommerce.service.serviceImpl.CategoryServiceImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class CategoryController {
     }
 
     @PostMapping("/public/categories")
-    private ResponseEntity<String> createCategory(@RequestBody Category category){
+    private ResponseEntity<String> createCategory(@Valid @RequestBody Category category){
         String message = categoryService.addCategory(category);
         return new ResponseEntity<>(message, HttpStatus.CREATED);
     }
