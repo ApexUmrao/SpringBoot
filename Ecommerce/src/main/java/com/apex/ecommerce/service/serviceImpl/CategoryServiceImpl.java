@@ -45,33 +45,42 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public String addCategory(Category category) {
-    	Category savedCategory = categoryRepo.findByCategoryName(category.getCategoryName());
+    public CategoryReqDTO addCategory(CategoryReqDTO categoryDTO) {
+        Category categoryEntity = modelMapper.map(categoryDTO, Category.class);
+    	Category savedCategory = categoryRepo.findByCategoryName(categoryEntity.getCategoryName());
         if (savedCategory != null){
-            throw new APIException("Category with name --> "+category.getCategoryName()+" already exists");
+            throw new APIException("Category with name --> "+categoryEntity.getCategoryName()+" already exists");
         }
-    	categoryRepo.save(category);
-        return "Category created Successfully";
+        savedCategory = categoryRepo.save(categoryEntity);
+
+        return modelMapper.map(savedCategory, CategoryReqDTO.class);
     }
 
     @Override
-    public String deleteCategoryById(int id) {
-    	
-    	categoryRepo.findById(id)
-    				.orElseThrow(() -> new ResourceNotFoundException("Category", "CategoryID", id));
-    	
-    	categoryRepo.deleteById(id);
-        return "Category deleted Successfully with Id : " + id;
+    public CategoryReqDTO deleteCategoryById(int id) {
+        Category findDeleteCategory = categoryRepo.findById(id)
+    				                    .orElseThrow(() -> new ResourceNotFoundException
+                                                ("Category", "CategoryID", id));
+
+    	categoryRepo.delete(findDeleteCategory);
+
+        return modelMapper.map(findDeleteCategory, CategoryReqDTO.class);
     }
 
     @Override
-    public Category updateCategory(int id, Category category) {
-    	
-    	Category updateCat = categoryRepo.findById(id)
+    public CategoryReqDTO updateCategory(int id, CategoryReqDTO categoryDTO) {
+
+
+        Category updateCat = categoryRepo.findById(id)
     										.orElseThrow(() -> new ResourceNotFoundException("Category", "CategoryID", id));
-    	
-    	updateCat.setCategoryName(category.getCategoryName());
-    	return categoryRepo.save(updateCat);
+
+        Category categoryEntitty = modelMapper.map(categoryDTO, Category.class);
+
+        updateCat.setCategoryName(categoryEntitty.getCategoryName());
+
+        Category updatedCategory = categoryRepo.save(updateCat);
+
+        return modelMapper.map(updatedCategory, CategoryReqDTO.class);
     }
 
 

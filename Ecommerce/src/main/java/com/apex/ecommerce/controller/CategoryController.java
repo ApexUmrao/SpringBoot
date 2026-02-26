@@ -1,6 +1,7 @@
 package com.apex.ecommerce.controller;
 
 import com.apex.ecommerce.model.Category;
+import com.apex.ecommerce.payload.CategoryReqDTO;
 import com.apex.ecommerce.payload.CategoryResDTO;
 import com.apex.ecommerce.service.serviceImpl.CategoryServiceImpl;
 import jakarta.validation.Valid;
@@ -30,21 +31,21 @@ public class CategoryController {
     }
 
     @PostMapping("/public/categories")
-    private ResponseEntity<String> createCategory(@Valid @RequestBody Category category){
-        String message = categoryService.addCategory(category);
-        return new ResponseEntity<>(message, HttpStatus.CREATED);
+    private ResponseEntity<CategoryReqDTO> createCategory(@Valid @RequestBody CategoryReqDTO category){
+        CategoryReqDTO addedCategoryDTO = categoryService.addCategory(category);
+        return new ResponseEntity<>(addedCategoryDTO, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/admin/categories/{categoryId}")
-    private ResponseEntity<String> deleteCategory(@PathVariable Integer categoryId) {
-            String message = categoryService.deleteCategoryById(categoryId);
-            return ResponseEntity.status(HttpStatus.OK).body(message);
+    private ResponseEntity<CategoryReqDTO> deleteCategory(@PathVariable Integer categoryId) {
+            CategoryReqDTO deletedCat = categoryService.deleteCategoryById(categoryId);
+            return ResponseEntity.status(HttpStatus.OK).body(deletedCat);
     }
 
     @PutMapping("/admin/categories/{categoryId}")
-    public ResponseEntity<String> updateCategory(@Valid @PathVariable Integer categoryId,
-                                                        @RequestBody Category category){
-            categoryService.updateCategory(categoryId, category);
-            return new ResponseEntity<>(" Updated Category with ID : " + categoryId, HttpStatus.OK);
+    public ResponseEntity<CategoryReqDTO> updateCategory(@Valid @PathVariable Integer categoryId,
+                                                        @RequestBody CategoryReqDTO category){
+            CategoryReqDTO updatedCat = categoryService.updateCategory(categoryId, category);
+            return new ResponseEntity<>(updatedCat, HttpStatus.OK);
     }
 }
