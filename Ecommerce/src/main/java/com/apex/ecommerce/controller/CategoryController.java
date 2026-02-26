@@ -1,8 +1,10 @@
 package com.apex.ecommerce.controller;
 
 import com.apex.ecommerce.model.Category;
+import com.apex.ecommerce.payload.CategoryResDTO;
 import com.apex.ecommerce.service.serviceImpl.CategoryServiceImpl;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,11 @@ public class CategoryController {
     private CategoryServiceImpl categoryService;
 
 
+
     //@GetMapping("/public/categories")
     @RequestMapping(value = "/public/categories" , method = RequestMethod.GET)
-    private ResponseEntity<List<Category>> getAllCategories() {
-        List<Category> allCategories = categoryService.getAllCategories();
+    private ResponseEntity<CategoryResDTO> getAllCategories() {
+        CategoryResDTO allCategories = categoryService.getAllCategories();
         return ResponseEntity.ok(allCategories);
     }
 

@@ -3,14 +3,18 @@ package com.apex.ecommerce.service.serviceImpl;
 import com.apex.ecommerce.exception.APIException;
 import com.apex.ecommerce.exception.ResourceNotFoundException;
 import com.apex.ecommerce.model.Category;
+import com.apex.ecommerce.payload.CategoryReqDTO;
+import com.apex.ecommerce.payload.CategoryResDTO;
 import com.apex.ecommerce.repositories.CategoryRepo;
 import com.apex.ecommerce.service.CategoryService;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -19,15 +23,25 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Autowired
 	public CategoryRepo categoryRepo;
+
+    @Autowired
+    private ModelMapper modelMapper;
 	
 
 	@Override
-    public List<Category> getAllCategories() {
+    public CategoryResDTO getAllCategories() {
 		List<Category> categories = categoryRepo.findAll();
         if (categories.isEmpty()) {
             throw new APIException("No Category is Found");
         }
-		return categories;
+        List<CategoryReqDTO> categoryReqDTOList = new ArrayList<>();
+        for (Category category : categories) {
+            CategoryReqDTO categoryReqDTO = modelMapper.map(category, CategoryReqDTO.class);
+            categoryReqDTOList.add(categoryReqDTO);
+        }
+        CategoryResDTO categoryResDTO = new CategoryResDTO();
+        categoryResDTO.setContent(categoryReqDTOList);
+        return categoryResDTO;
     }
 
     @Override

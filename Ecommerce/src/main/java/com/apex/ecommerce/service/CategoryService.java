@@ -1,12 +1,13 @@
 package com.apex.ecommerce.service;
 
 import com.apex.ecommerce.model.Category;
+import com.apex.ecommerce.payload.CategoryResDTO;
 
 import java.util.List;
 
 public interface CategoryService {
 
-    public List<Category> getAllCategories();
+    public CategoryResDTO getAllCategories();
 
     public String addCategory( Category category);
 
