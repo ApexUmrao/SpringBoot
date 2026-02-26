@@ -12,4 +12,9 @@ import java.util.List;
 public class CategoryResDTO {
 
     private List<CategoryReqDTO> content;
+    private Integer pageNo;
+    private Integer pageSize;
+    private Long totalElements;
+    private Integer totalPages;
+    private boolean isLastPage;
 }

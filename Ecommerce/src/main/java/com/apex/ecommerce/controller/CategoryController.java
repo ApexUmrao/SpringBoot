@@ -1,18 +1,15 @@
 package com.apex.ecommerce.controller;
 
-import com.apex.ecommerce.model.Category;
+import com.apex.ecommerce.config.AppConstant;
 import com.apex.ecommerce.payload.CategoryReqDTO;
 import com.apex.ecommerce.payload.CategoryResDTO;
 import com.apex.ecommerce.service.serviceImpl.CategoryServiceImpl;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -22,11 +19,13 @@ public class CategoryController {
     private CategoryServiceImpl categoryService;
 
 
-
-    //@GetMapping("/public/categories")
-    @RequestMapping(value = "/public/categories" , method = RequestMethod.GET)
-    private ResponseEntity<CategoryResDTO> getAllCategories() {
-        CategoryResDTO allCategories = categoryService.getAllCategories();
+    @GetMapping("/public/categories")
+    private ResponseEntity<CategoryResDTO> getAllCategories(
+            @RequestParam (defaultValue = AppConstant.PAGE_NO , required = false) Integer pageNo,
+            @RequestParam (defaultValue = AppConstant.PAGE_SIZE , required = false) Integer pageSize,
+            @RequestParam (defaultValue = AppConstant.SORT_CATEGORY_BY , required = false) String sortBy,
+            @RequestParam (defaultValue = AppConstant.SORT_CATEGORY_ODR, required = false) String sortOrder) {
+        CategoryResDTO allCategories = categoryService.getAllCategories(pageNo , pageSize, sortBy, sortOrder);
         return ResponseEntity.ok(allCategories);
     }
 

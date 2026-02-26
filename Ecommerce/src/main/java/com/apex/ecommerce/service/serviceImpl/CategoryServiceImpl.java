@@ -10,6 +10,10 @@ import com.apex.ecommerce.service.CategoryService;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,8 +33,13 @@ public class CategoryServiceImpl implements CategoryService {
 	
 
 	@Override
-    public CategoryResDTO getAllCategories() {
-		List<Category> categories = categoryRepo.findAll();
+    public CategoryResDTO getAllCategories(Integer pageNo, Integer pageSize,  String sortBy, String sortOrder) {
+        Sort sortCategory = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortCategory);
+        Page<Category> page = categoryRepo.findAll(pageDetails);
+        List<Category> categories = page.getContent();
         if (categories.isEmpty()) {
             throw new APIException("No Category is Found");
         }
@@ -41,6 +50,11 @@ public class CategoryServiceImpl implements CategoryService {
         }
         CategoryResDTO categoryResDTO = new CategoryResDTO();
         categoryResDTO.setContent(categoryReqDTOList);
+        categoryResDTO.setPageNo(page.getNumber());
+        categoryResDTO.setPageSize(page.getSize());
+        categoryResDTO.setTotalElements(page.getTotalElements());
+        categoryResDTO.setTotalPages(page.getTotalPages());
+        categoryResDTO.setLastPage(page.isLast());
         return categoryResDTO;
     }
 

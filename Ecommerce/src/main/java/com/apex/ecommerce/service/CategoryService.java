@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface CategoryService {
 
-    public CategoryResDTO getAllCategories();
+    public CategoryResDTO getAllCategories(Integer pageNo, Integer pageSize , String sortBy, String sortOrder);
 
     public CategoryReqDTO addCategory( CategoryReqDTO category);
 
