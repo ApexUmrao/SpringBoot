@@ -1,6 +1,7 @@
 package com.apex.socialMedia.model;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -24,4 +25,9 @@ public class SocialGroup {
 	
 	@ManyToMany(mappedBy = "groups")
 	private Set<SocialUser> socialUsers = new HashSet<>();
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 }

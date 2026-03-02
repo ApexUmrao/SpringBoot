@@ -3,6 +3,7 @@ package com.apex.socialMedia.model;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -40,6 +41,11 @@ public class SocialUser {
 			inverseJoinColumns = @JoinColumn(name = "group_id")
 	)
 	private Set<SocialGroup> groups = new HashSet<>();
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 	
 
 }
