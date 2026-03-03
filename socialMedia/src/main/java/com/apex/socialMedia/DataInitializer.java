@@ -1,19 +1,16 @@
 package com.apex.socialMedia;
 
-import com.apex.socialMedia.repositories.PostRepo;
-import com.apex.socialMedia.repositories.SocialProfileRepo;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import com.apex.socialMedia.model.Post;
 import com.apex.socialMedia.model.SocialGroup;
 import com.apex.socialMedia.model.SocialProfile;
 import com.apex.socialMedia.model.SocialUser;
+import com.apex.socialMedia.repositories.PostRepo;
 import com.apex.socialMedia.repositories.SocialGroupRepo;
+import com.apex.socialMedia.repositories.SocialProfileRepo;
 import com.apex.socialMedia.repositories.SocialUserRepo;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class DataInitializer {
