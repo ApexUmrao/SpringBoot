@@ -1,7 +1,7 @@
 package com.apex.socialMedia.controller;
 
-import java.util.List;
-
+import com.apex.socialMedia.model.SocialUser;
+import com.apex.socialMedia.service.SocialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.apex.socialMedia.model.SocialUser;
-import com.apex.socialMedia.service.SocialService;
+import java.util.List;
 
 @Controller
 public class SocialController {
