@@ -1,5 +1,7 @@
 package com.apex.socialMedia.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +24,7 @@ public class Post {
 	
 	@ManyToOne
 	@JoinColumn(name = "user_social_id")
+	@JsonIgnore
 	private SocialUser userSocial;
 	
 

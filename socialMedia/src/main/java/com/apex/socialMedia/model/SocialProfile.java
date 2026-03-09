@@ -1,5 +1,7 @@
 package com.apex.socialMedia.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,5 +25,13 @@ public class SocialProfile {
 	
 	@OneToOne
 	@JoinColumn(name = "social_user")
+	@JsonIgnore
 	private SocialUser socialUser;
+	
+	private String description;
+	
+	public void setSocialUser(SocialUser socialUser) {
+		this.socialUser = socialUser;
+		socialUser.setSocialProfile(this);	
+	}
 }

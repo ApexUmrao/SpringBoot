@@ -3,7 +3,6 @@ package com.apex.socialMedia;
 import com.apex.socialMedia.repositories.PostRepo;
 import com.apex.socialMedia.repositories.SocialProfileRepo;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
