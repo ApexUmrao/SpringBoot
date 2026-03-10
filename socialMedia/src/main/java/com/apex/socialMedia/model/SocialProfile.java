@@ -32,6 +32,9 @@ public class SocialProfile {
 	
 	public void setSocialUser(SocialUser socialUser) {
 		this.socialUser = socialUser;
-		socialUser.setSocialProfile(this);	
+		if (socialUser.getSocialProfile() != this) {
+			socialUser.setSocialProfile(this);
+		}
 	}
+	
 }

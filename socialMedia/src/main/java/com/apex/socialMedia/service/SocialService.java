@@ -21,6 +21,21 @@ public class SocialService {
 		return socialUserRepo.save(socialUser);
 	}
 
+	public void deleteUser(Long id) {
+		socialUserRepo.findById(id).orElseThrow(() 
+					-> new RuntimeException("User not found with id: " + id));
+		socialUserRepo.deleteById(id);		
+	}
+
+	public void updateUser(Long id, SocialUser socialUser) {
+		SocialUser existingUser = socialUserRepo.findById(id).orElseThrow(() 
+					-> new RuntimeException("User not found with id: " + id));
+		existingUser.setSocialProfile(socialUser.getSocialProfile());
+		existingUser.setPosts(socialUser.getPosts());
+		existingUser.setGroups(socialUser.getGroups());
+		socialUserRepo.save(existingUser);
+	}
+
 	
 	
 
