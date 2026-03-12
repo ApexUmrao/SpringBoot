@@ -13,6 +13,10 @@ import com.apex.ecommerce.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -70,8 +74,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResDTO getAllProduct() {
-        List<Product> products = productRepo.findAll();
+    public ProductResDTO getAllProduct(Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortProduct = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortProduct);
+        Page<Product> page = productRepo.findAll(pageDetails);
+        List<Product> products = page.getContent();
         if (products.isEmpty()) {
             throw new APIException("No Product found");
         }
@@ -82,15 +91,25 @@ public class ProductServiceImpl implements ProductService {
         }
         ProductResDTO productResDTO = new ProductResDTO();
         productResDTO.setContent(productReqDTOS);
+        productResDTO.setPageNo(page.getNumber());
+        productResDTO.setPageSize(page.getSize());
+        productResDTO.setTotalElements(page.getTotalElements());
+        productResDTO.setTotalPages(page.getTotalPages());
+        productResDTO.setLastPage(page.isLast());
         return productResDTO;
     }
 
     @Override
-    public ProductResDTO searchByCategory(Integer categoryId) {
+    public ProductResDTO searchByCategory(Integer categoryId, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
         Category category = categoryRepo.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "Category Id", categoryId));
 
-        List<Product> products = productRepo.findByCategoryOrderByPriceAsc(category);
+        Sort sortProduct = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortProduct);
+        Page<Product> page = productRepo.findByCategoryOrderByPriceAsc(category,pageDetails);
+        List<Product> products = page.getContent();
 
         if (products.isEmpty()) {
             throw new APIException("No Product found");
@@ -103,12 +122,23 @@ public class ProductServiceImpl implements ProductService {
         }
         ProductResDTO productResDTO = new ProductResDTO();
         productResDTO.setContent(productReqDTOS);
+        productResDTO.setPageNo(page.getNumber());
+        productResDTO.setPageSize(page.getSize());
+        productResDTO.setTotalElements(page.getTotalElements());
+        productResDTO.setTotalPages(page.getTotalPages());
+        productResDTO.setLastPage(page.isLast());
         return productResDTO;
     }
 
     @Override
-    public ProductResDTO searchProductByKeyword(String keyword) {
-        List<Product> products = productRepo.findByProductNameLikeIgnoreCase('%' + keyword + '%');
+    public ProductResDTO searchProductByKeyword(String keyword, Integer pageNo, Integer pageSize, String sortBy, String sortOrder) {
+
+        Sort sortProduct = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortProduct);
+        Page<Product> page = productRepo.findByProductNameLikeIgnoreCase('%' + keyword + '%',pageDetails);
+        List<Product> products = page.getContent();
 
         if (products.isEmpty()) {
             throw new APIException("No Product found");
@@ -121,6 +151,11 @@ public class ProductServiceImpl implements ProductService {
         }
         ProductResDTO productResDTO = new ProductResDTO();
         productResDTO.setContent(productReqDTOS);
+        productResDTO.setPageNo(page.getNumber());
+        productResDTO.setPageSize(page.getSize());
+        productResDTO.setTotalElements(page.getTotalElements());
+        productResDTO.setTotalPages(page.getTotalPages());
+        productResDTO.setLastPage(page.isLast());
         return productResDTO;
     }
 

@@ -13,5 +13,9 @@ import java.util.List;
 public class ProductResDTO {
 
     private List<ProductReqDTO> content;
-
+    private Integer pageNo;
+    private Integer pageSize;
+    private Long totalElements;
+    private Integer totalPages;
+    private boolean isLastPage;
 }
