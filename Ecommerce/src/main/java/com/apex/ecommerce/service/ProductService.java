@@ -15,4 +15,8 @@ public interface ProductService {
     ProductResDTO searchByCategory(Integer categoryId);
 
     ProductResDTO searchProductByKeyword(String keyword);
+
+    ProductReqDTO updateProduct(Product product, Long productId);
+
+    ProductResDTO deleteProduct(Long productId);
 }
