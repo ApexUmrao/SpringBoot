@@ -7,10 +7,14 @@ import com.apex.ecommerce.payload.ProductReqDTO;
 import com.apex.ecommerce.payload.ProductResDTO;
 import com.apex.ecommerce.repositories.CategoryRepo;
 import com.apex.ecommerce.repositories.ProductRepo;
+import com.apex.ecommerce.service.FileService;
 import com.apex.ecommerce.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +30,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private FileService fileService;
+
+    @Value("${project.image}")
+    private String path;
 
     @Override
     public ProductReqDTO addProduct(ProductReqDTO productReqDTO, Integer categoryId) {
@@ -102,10 +112,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResDTO deleteProduct(Long productId) {
+    public ProductReqDTO deleteProduct(Long productId) {
         Product productToDelete = productRepo.findById(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Product","Product Id",productId));
         productRepo.delete(productToDelete);
-        return modelMapper.map(productToDelete,ProductResDTO.class);
+        return modelMapper.map(productToDelete,ProductReqDTO.class);
+    }
+
+    @Override
+    public ProductReqDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
+       Product productImageToUpdate = productRepo.findById(productId)
+               .orElseThrow(()-> new ResourceNotFoundException("Product","Product Id",productId));
+
+       String imageName = fileService.uploadImage(path, image);
+
+       productImageToUpdate.setImage(imageName);
+
+       Product updatedProduct = productRepo.save(productImageToUpdate);
+
+       return modelMapper.map(updatedProduct,ProductReqDTO.class);
     }
 }
