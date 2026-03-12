@@ -1,5 +1,6 @@
 package com.apex.ecommerce.service.serviceImpl;
 
+import com.apex.ecommerce.exception.APIException;
 import com.apex.ecommerce.exception.ResourceNotFoundException;
 import com.apex.ecommerce.model.Category;
 import com.apex.ecommerce.model.Product;
@@ -42,17 +43,38 @@ public class ProductServiceImpl implements ProductService {
        Category category = categoryRepo.findById(categoryId)
                      .orElseThrow(() -> new ResourceNotFoundException("Category", "Category Id", categoryId));
         Product product = modelMapper.map(productReqDTO, Product.class);
-        product.setCategory(category);
-        product.setSpecialPrice(product.getPrice() - (product.getDiscount()*0.01)*product.getPrice());
-        product.setImage("default.png");
+//
+//        Product savedProduct = productRepo.findByProductName(product);
+//        if (savedProduct != null) {
+//            throw new APIException("Product with name --> "+product.getProductName()+" already exists");
+//        }
 
-        Product productSaved = productRepo.save(product);
-        return modelMapper.map(productSaved,ProductReqDTO.class);
+        Boolean ifProductNotPresent = true;
+        List<Product> products = category.getProducts();
+        for (Product value : products) {
+            if (value.getProductName().equals(product.getProductName())) {
+                ifProductNotPresent = false;
+            }
+        }
+        if (ifProductNotPresent) {
+            product.setCategory(category);
+            product.setSpecialPrice(product.getPrice() - (product.getDiscount() * 0.01) * product.getPrice());
+            product.setImage("default.png");
+
+            Product productSaved = productRepo.save(product);
+            return modelMapper.map(productSaved, ProductReqDTO.class);
+
+        } else {
+            throw new APIException("Product with name --> "+product.getProductName()+" already exists");
+        }
     }
 
     @Override
     public ProductResDTO getAllProduct() {
         List<Product> products = productRepo.findAll();
+        if (products.isEmpty()) {
+            throw new APIException("No Product found");
+        }
         List<ProductReqDTO> productReqDTOS = new ArrayList<>();
         for (Product product : products) {
             ProductReqDTO productReqDTO = modelMapper.map(product,ProductReqDTO.class);
@@ -69,6 +91,11 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "Category Id", categoryId));
 
         List<Product> products = productRepo.findByCategoryOrderByPriceAsc(category);
+
+        if (products.isEmpty()) {
+            throw new APIException("No Product found");
+        }
+
         List<ProductReqDTO> productReqDTOS = new ArrayList<>();
         for (Product product : products) {
             ProductReqDTO productReqDTO = modelMapper.map(product,ProductReqDTO.class);
@@ -82,6 +109,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResDTO searchProductByKeyword(String keyword) {
         List<Product> products = productRepo.findByProductNameLikeIgnoreCase('%' + keyword + '%');
+
+        if (products.isEmpty()) {
+            throw new APIException("No Product found");
+        }
+
         List<ProductReqDTO> productReqDTOS = new ArrayList<>();
         for (Product product : products) {
             ProductReqDTO productReqDTO = modelMapper.map(product,ProductReqDTO.class);
