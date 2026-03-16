@@ -1,7 +1,13 @@
 package com.apex.ecommerce.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +32,7 @@ public class Product {
     @Size(min = 3, message = "Description should be greater than 3 Character")
     private String description;
 
-    @NotBlank
+    @NotNull
     private Integer quantity;
 
     private Double price;

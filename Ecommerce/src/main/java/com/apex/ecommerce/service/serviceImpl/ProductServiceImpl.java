@@ -171,7 +171,7 @@ public class ProductServiceImpl implements ProductService {
         productToUpdate.setQuantity(product.getQuantity());
         productToUpdate.setDiscount(product.getDiscount());
         productToUpdate.setPrice(product.getPrice());
-        productToUpdate.setSpecialPrice(product.getSpecialPrice());
+        productToUpdate.setSpecialPrice(product.getPrice() - (product.getDiscount() * 0.01) * product.getPrice());
 
         Product savedProduct = productRepo.save(productToUpdate);
 
