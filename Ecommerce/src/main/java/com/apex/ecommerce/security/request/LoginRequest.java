@@ -1,4 +1,4 @@
-package com.apex.ecommerce.security.jwt;
+package com.apex.ecommerce.security.request;
 
 public class LoginRequest {
     private String username;
