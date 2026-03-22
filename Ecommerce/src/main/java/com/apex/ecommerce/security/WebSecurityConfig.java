@@ -81,6 +81,9 @@ public class WebSecurityConfig {
         http.addFilterBefore(authTokenFilter(),
                 UsernamePasswordAuthenticationFilter.class);
 
+        http.headers(headers -> headers
+                .frameOptions(frame -> frame.disable())) ;    // H2 console uses iframes
+
         return http.build();
     }
 
