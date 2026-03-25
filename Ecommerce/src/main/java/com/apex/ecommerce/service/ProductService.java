@@ -2,9 +2,11 @@ package com.apex.ecommerce.service;
 
 import com.apex.ecommerce.payload.ProductReqDTO;
 import com.apex.ecommerce.payload.ProductResDTO;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+
+import org.springframework.web.multipart.MultipartFile;
+
 
 public interface ProductService {
 
@@ -17,9 +19,13 @@ public interface ProductService {
 
     ProductResDTO searchProductByKeyword(String keyword, Integer pageNo, Integer pageSize, String sortBy, String sortOrder);
 
-    ProductReqDTO updateProduct(ProductReqDTO product, Long productId);
+    ProductResDTO updateProduct(ProductReqDTO product, Long productId);
 
-    ProductReqDTO deleteProduct(Long productId);
+    ProductResDTO deleteProduct(Long productId);
 
-    ProductReqDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
+    ProductResDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
+    
+    ProductResDTO getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
+
+    ProductResDTO getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 }

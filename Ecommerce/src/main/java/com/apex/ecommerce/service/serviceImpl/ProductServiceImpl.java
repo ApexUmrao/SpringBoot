@@ -4,6 +4,8 @@ import com.apex.ecommerce.exception.APIException;
 import com.apex.ecommerce.exception.ResourceNotFoundException;
 import com.apex.ecommerce.model.Category;
 import com.apex.ecommerce.model.Product;
+import com.apex.ecommerce.model.User;
+import com.apex.ecommerce.util.AuthUtil;
 import com.apex.ecommerce.payload.ProductReqDTO;
 import com.apex.ecommerce.payload.ProductResDTO;
 import com.apex.ecommerce.repositories.CategoryRepo;
@@ -38,9 +40,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private FileService fileService;
+    
+    @Autowired
+    private AuthUtil authUtil;
 
     @Value("${project.image}")
     private String path;
+    
+
+    @Value("${image.base.url}")
+    private String imageBaseUrl;
 
     @Override
     public ProductReqDTO addProduct(ProductReqDTO productReqDTO, Integer categoryId) {
@@ -160,7 +169,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductReqDTO updateProduct(ProductReqDTO productReqDTO, Long productId) {
+    public ProductResDTO updateProduct(ProductReqDTO productReqDTO, Long productId) {
         Product productToUpdate = productRepo.findById(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Product","Product Id",productId));
 
@@ -175,19 +184,19 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = productRepo.save(productToUpdate);
 
-        return modelMapper.map (savedProduct,ProductReqDTO.class);
+        return modelMapper.map (savedProduct,ProductResDTO.class);
     }
 
     @Override
-    public ProductReqDTO deleteProduct(Long productId) {
+    public ProductResDTO deleteProduct(Long productId) {
         Product productToDelete = productRepo.findById(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Product","Product Id",productId));
         productRepo.delete(productToDelete);
-        return modelMapper.map(productToDelete,ProductReqDTO.class);
+        return modelMapper.map(productToDelete,ProductResDTO.class);
     }
 
     @Override
-    public ProductReqDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
+    public ProductResDTO updateProductImage(Long productId, MultipartFile image) throws IOException {
        Product productImageToUpdate = productRepo.findById(productId)
                .orElseThrow(()-> new ResourceNotFoundException("Product","Product Id",productId));
 
@@ -197,6 +206,68 @@ public class ProductServiceImpl implements ProductService {
 
        Product updatedProduct = productRepo.save(productImageToUpdate);
 
-       return modelMapper.map(updatedProduct,ProductReqDTO.class);
+       return modelMapper.map(updatedProduct,ProductResDTO.class);
+    }
+    
+    public ProductResDTO getAllProductsForAdmin(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Product> pageProducts = productRepo.findAll(pageDetails);
+
+        List<Product> products = pageProducts.getContent();
+
+        List<ProductReqDTO> productDTOS = products.stream()
+                .map(product -> {
+                    ProductReqDTO productDTO = modelMapper.map(product, ProductReqDTO.class);
+                    productDTO.setImage(constructImageUrl(product.getImage()));
+                    return productDTO;
+                })
+                .toList();
+
+        ProductResDTO productResponse = new ProductResDTO();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNo(pageProducts.getNumber());
+        productResponse.setPageSize(pageProducts.getSize());
+        productResponse.setTotalElements(pageProducts.getTotalElements());
+        productResponse.setTotalPages(pageProducts.getTotalPages());
+        productResponse.setLastPage(pageProducts.isLast());
+        return productResponse;
+    }
+
+    public ProductResDTO getAllProductsForSeller(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+
+        User user = authUtil.loggedInUser();
+        Page<Product> pageProducts = productRepo.findByUser(user, pageDetails);
+
+        List<Product> products = pageProducts.getContent();
+
+        List<ProductReqDTO> productDTOS = products.stream()
+                .map(product -> {
+                    ProductReqDTO productDTO = modelMapper.map(product, ProductReqDTO.class);
+                    productDTO.setImage(constructImageUrl(product.getImage()));
+                    return productDTO;
+                })
+                .toList();
+
+        ProductResDTO productResponse = new ProductResDTO();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNo(pageProducts.getNumber());
+        productResponse.setPageSize(pageProducts.getSize());
+        productResponse.setTotalElements(pageProducts.getTotalElements());
+        productResponse.setTotalPages(pageProducts.getTotalPages());
+        productResponse.setLastPage(pageProducts.isLast());
+        return productResponse;
+    }
+
+    private String constructImageUrl(String imageName) {
+        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
     }
 }

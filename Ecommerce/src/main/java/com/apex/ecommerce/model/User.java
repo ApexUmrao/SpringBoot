@@ -62,12 +62,16 @@ public class User {
 //            inverseJoinColumns = @JoinColumn (name = "addressId"))
     private List<Address> address= new ArrayList<>();
 
+    @ToString.Exclude
+    @OneToOne(mappedBy = "user", cascade = { CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    private Cart cart;
+
+
     @Getter
     @Setter
     @ToString.Exclude
     @OneToMany(mappedBy = "user",
             cascade = {CascadeType.MERGE,CascadeType.PERSIST},
             orphanRemoval = true)
-    private Set<Product> products= new HashSet<>();
-
+    private Set<Product> products;
 }

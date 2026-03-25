@@ -2,6 +2,8 @@ package com.apex.ecommerce.repositories;
 
 import com.apex.ecommerce.model.Category;
 import com.apex.ecommerce.model.Product;
+import com.apex.ecommerce.model.User;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +16,6 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
 
     Page<Product> findByProductNameLikeIgnoreCase(String keyword, Pageable pageDetails);
 
-    Product  findByProductName(Product product);
+    Page<Product> findByUser(User user, Pageable pageDetails);
+
 }

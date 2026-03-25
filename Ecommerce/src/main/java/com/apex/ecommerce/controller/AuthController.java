@@ -1,18 +1,24 @@
 package com.apex.ecommerce.controller;
 
+import com.apex.ecommerce.config.AppConstant;
 import com.apex.ecommerce.model.AppRole;
 import com.apex.ecommerce.model.Role;
 import com.apex.ecommerce.model.User;
+import com.apex.ecommerce.payload.AuthenticationResult;
 import com.apex.ecommerce.repositories.RoleRepo;
 import com.apex.ecommerce.repositories.UserRepo;
 import com.apex.ecommerce.security.jwt.JwtUtils;
 import com.apex.ecommerce.security.request.LoginRequest;
 import com.apex.ecommerce.security.request.SignupRequest;
 import com.apex.ecommerce.security.response.MessageResponse;
-import com.apex.ecommerce.security.response.UserInfoResponse;
-import com.apex.ecommerce.security.services.UserDetailsImpl;
+import com.apex.ecommerce.service.AuthService;
+
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,114 +32,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @RestController
 @RequestMapping("/api/auth")
-
 public class AuthController {
+	
+	 @Autowired
+	 AuthService authService;
 
-    @Autowired
-    private JwtUtils jwtUtils;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserRepo userRepository;
-
-    @Autowired
-    private RoleRepo roleRepository;
-
-
-    @Autowired
-    private PasswordEncoder encoder;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication;
-        try {
-            authentication = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-        } catch (AuthenticationException exception) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("message", "Bad credentials");
-            map.put("status", false);
-            return new ResponseEntity<Object>(map, HttpStatus.NOT_FOUND);
-        }
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        UserInfoResponse response = new UserInfoResponse(userDetails.getId(),
-                jwtCookie.toString(),userDetails.getUsername(), roles);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE,jwtCookie.toString())
-                .body(response);
+        AuthenticationResult result = authService.login(loginRequest);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
+                result.getJwtCookie().toString())
+                .body(result.getResponse());
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUserName(signUpRequest.getUsername())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
-        }
-
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
-        }
-
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-
-        Set<String> strRoles = signUpRequest.getRole();
-        Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            for (String role : strRoles) {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    case "seller":
-                        Role modRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(modRole);
-                        break;
-
-                    default:
-                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            }
-        }
-
-        user.setRoles(roles);
-        userRepository.save(user);
-
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return authService.register(signUpRequest);
     }
 
     @GetMapping("/username")
-    public String getCurrentUsername(Authentication authentication) {
+    public String gurrentUsername(Authentication authentication) {
         if (authentication != null) {
             return authentication.getName();
         }else{
@@ -142,26 +63,26 @@ public class AuthController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<UserInfoResponse> getUserDetails(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        UserInfoResponse response = new UserInfoResponse(userDetails.getId(),
-                userDetails.getUsername(), roles);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> getUserDetails(Authentication authentication){
+        return ResponseEntity.ok().body(authService.getCurrentUserDetails(authentication));
     }
 
     @PostMapping("/signout")
     public ResponseEntity<?> signoutUser(){
-        ResponseCookie jwtCleanCookie = jwtUtils.getCleanJwtCookie();
+        ResponseCookie cookie = authService.logoutUser();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
+                        cookie.toString())
+                .body(new MessageResponse("You've been signed out!"));
+    }
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE,jwtCleanCookie.toString())
-                .body(new MessageResponse("Successfully logged out!"));
+    @GetMapping("/sellers")
+    public ResponseEntity<?> getAllSellers(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstant.PAGE_NO, required = false) Integer pageNumber) {
+
+        Sort sortByAndOrder = Sort.by(AppConstant.SORT_USERS_BY).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber ,
+                Integer.parseInt(AppConstant.PAGE_SIZE), sortByAndOrder);
+        return ResponseEntity.ok(authService.getAllSellers(pageDetails));
     }
 
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public class Category {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private int categoryId;
 
     @NotBlank
@@ -22,5 +22,5 @@ public class Category {
     private String categoryName;
 
     @OneToMany(mappedBy = "category",cascade = CascadeType.ALL)
-    List<Product> products;
+    private List<Product> products;
 }
