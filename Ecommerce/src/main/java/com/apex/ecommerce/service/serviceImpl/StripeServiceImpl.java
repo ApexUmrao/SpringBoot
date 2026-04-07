@@ -13,18 +13,22 @@ import com.stripe.param.PaymentIntentCreateParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
 @Transactional
+@ConditionalOnProperty(name = "stripe.secret.key", havingValue = "", matchIfMissing = false)
 public class StripeServiceImpl implements StripeService {
 
-    @Value("${stripe.secret.key}")
+    @Value("${stripe.secret.key:}")
     private String stripeApiKey;
 
     @PostConstruct
     public void init(){
-        Stripe.apiKey = stripeApiKey;
+        if (stripeApiKey != null && !stripeApiKey.isBlank()) {
+            Stripe.apiKey = stripeApiKey;
+        }
     }
 
     @Override

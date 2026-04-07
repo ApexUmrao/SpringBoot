@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -28,8 +29,8 @@ public class OrderController {
     @Autowired
     private AuthUtil authUtil;
 
-    @Autowired
-    private StripeServiceImpl stripeService;
+    @Autowired(required = false)
+    private Optional<StripeService> stripeService;
 
     @PostMapping("/order/users/payments/{paymentMethod}")
     public ResponseEntity<OrderDTO> orderProducts(@PathVariable String paymentMethod, @RequestBody OrderRequestDTO orderRequestDTO) {
@@ -49,7 +50,10 @@ public class OrderController {
     @PostMapping("/order/stripe-client-secret")
     public ResponseEntity<String> createStripeClientSecret(@RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
         System.out.println("StripePaymentDTO Received " + stripePaymentDto);
-        PaymentIntent paymentIntent = stripeService.paymentIntent(stripePaymentDto);		
+        if (stripeService == null || !stripeService.isPresent()) {
+            return new ResponseEntity<>("Stripe service is not configured. Please set STRIPE_SECRET_KEY environment variable.", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+        PaymentIntent paymentIntent = stripeService.get().paymentIntent(stripePaymentDto);		
         return new ResponseEntity<>(paymentIntent.getClientSecret(), HttpStatus.CREATED);
     }
 
