@@ -18,7 +18,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +32,6 @@ import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
 public class WebSecurityConfig {
 
     @Autowired
@@ -73,19 +71,24 @@ public class WebSecurityConfig {
                         exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
-                               // .requestMatchers("/api/admin/**").permitAll()
-                                .requestMatchers("/api/public/**").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .anyRequest().authenticated()
+                .authorizeHttpRequests(authzReq -> authzReq
+                        .requestMatchers("/api/auth/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/configuration/ui",
+                                "/swagger-resources/**",
+                                "/configuration/security",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/webjars/**",
+                                "/h2-console/**",
+                                "/api/public/**",
+                                "/api/test/**",
+                                "/images/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER")
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());
@@ -93,12 +96,11 @@ public class WebSecurityConfig {
                 UsernamePasswordAuthenticationFilter.class);
 
         http.headers(headers -> headers
-                .frameOptions(frame -> frame.disable())) ;    // H2 console uses iframes
+                .frameOptions(frame -> frame.disable())); // H2 console uses iframes
 
         return http.build();
     }
-    
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -108,26 +110,13 @@ public class WebSecurityConfig {
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);  // ← note: config not source
+        source.registerCorsConfiguration("/**", config);
         return source;
-    }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer(){
-        return (web -> web.ignoring().requestMatchers(
-                "/v3/api-docs",
-                "/configuration/ui",
-                "/swagger-resources/**",
-                "/configuration/security",
-                "/swagger-ui.html",
-                "/webjars/**"
-        ) );
     }
 
     @Bean
     public CommandLineRunner initData(RoleRepo roleRepository, UserRepo userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            // Retrieve or create roles
             Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
                     .orElseGet(() -> {
                         Role newUserRole = new Role(AppRole.ROLE_USER);
@@ -150,8 +139,6 @@ public class WebSecurityConfig {
             Set<Role> sellerRoles = Set.of(sellerRole);
             Set<Role> adminRoles = Set.of(userRole, sellerRole, adminRole);
 
-
-            // Create users if not already present
             if (!userRepository.existsByUserName("user1")) {
                 User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));
                 userRepository.save(user1);
@@ -167,7 +154,6 @@ public class WebSecurityConfig {
                 userRepository.save(admin);
             }
 
-            // Update roles for existing users
             userRepository.findByUserName("user1").ifPresent(user -> {
                 user.setRoles(userRoles);
                 userRepository.save(user);
@@ -184,5 +170,4 @@ public class WebSecurityConfig {
             });
         };
     }
-
 }

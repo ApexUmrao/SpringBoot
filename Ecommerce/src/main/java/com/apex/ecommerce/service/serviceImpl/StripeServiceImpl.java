@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(name = "stripe.secret.key", havingValue = "", matchIfMissing = false)
 public class StripeServiceImpl implements StripeService {
 
-    @Value("${stripe.secret.key:}")
+    @Value("${stripe.secret.key}")
     private String stripeApiKey;
 
     @PostConstruct
