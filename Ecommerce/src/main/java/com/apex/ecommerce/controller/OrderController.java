@@ -61,7 +61,7 @@ public class OrderController {
     public ResponseEntity<OrderResponse> getAllOrders(
             @RequestParam(name = "pageNumber", defaultValue = AppConstant.PAGE_NO, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = AppConstant.PAGE_SIZE, required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = AppConstant.SORT_CATEGORY_BY, required = false) String sortBy,
+            @RequestParam(name = "sortBy", defaultValue = AppConstant.SORT_ORDERS_BY, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstant.SORT_CATEGORY_ODR, required = false) String sortOrder
     ) {
         OrderResponse orderResponse = orderService.getAllOrders(pageNumber, pageSize, sortBy, sortOrder);
@@ -72,7 +72,7 @@ public class OrderController {
     public ResponseEntity<OrderResponse> getAllSellerOrders(
     		 @RequestParam(name = "pageNumber", defaultValue = AppConstant.PAGE_NO, required = false) Integer pageNumber,
              @RequestParam(name = "pageSize", defaultValue = AppConstant.PAGE_SIZE, required = false) Integer pageSize,
-             @RequestParam(name = "sortBy", defaultValue = AppConstant.SORT_CATEGORY_BY, required = false) String sortBy,
+             @RequestParam(name = "sortBy", defaultValue = AppConstant.SORT_ORDERS_BY, required = false) String sortBy,
              @RequestParam(name = "sortOrder", defaultValue = AppConstant.SORT_CATEGORY_ODR, required = false) String sortOrder
     ) {
         OrderResponse orderResponse = orderService.getAllSellerOrders(pageNumber, pageSize, sortBy, sortOrder);

@@ -120,14 +120,19 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
+    @Transactional
     public OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
         Page<Order> pageOrders = orderRepository.findAll(pageDetails);
-        List<Order> orders = pageOrders.getContent();
-        List<OrderDTO> orderDTOs = orders.stream()
+        
+     // Initialize lazy-loaded collections
+        pageOrders.getContent().forEach(order -> order.getOrderItems().size());
+        
+//        List<Order> orders = pageOrders.getContent();
+        List<OrderDTO> orderDTOs = pageOrders.getContent().stream()
                 .map(order -> modelMapper.map(order, OrderDTO.class))
                 .toList();
         OrderResponse orderResponse = new OrderResponse();
