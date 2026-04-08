@@ -6,6 +6,9 @@ import com.apex.ecommerce.payload.CartItemDTO;
 import com.apex.ecommerce.repositories.CartRepo;
 import com.apex.ecommerce.service.CartService;
 import com.apex.ecommerce.util.AuthUtil;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,10 +49,13 @@ public class CartController {
     }
 
     @GetMapping("/carts/users/cart")
+    @Transactional
     public ResponseEntity<CartDTO> getCartById(){
         String emailId = authUtil.loggedInEmail();
         Cart cart = cartRepository.findCartByEmail(emailId);
         Long cartId = cart.getCartId();
+        // Initialize cartItems collection within transaction
+        cart.getCartItems().size(); // Force lazy initialization
         CartDTO cartDTO = cartService.getCart(emailId, cartId);
         return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);
     }
