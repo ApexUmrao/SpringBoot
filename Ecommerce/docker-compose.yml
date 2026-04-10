@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: apexTrade-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ECommerce
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SPRING_DATASOURCE_USERNAME} -d ECommerce"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Spring Boot Backend ───────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apexTrade-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy   # wait for Postgres to be ready
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      FRONTEND_URL: ${FRONTEND_URL}
+      IMAGE_BASE_URL: ${IMAGE_BASE_URL}
+    volumes:
+      - image_uploads:/app/images   # persist product images across restarts
+    networks:
+      - ecommerce-net
+    ports:
+      - "8080:8080"                 # remove this in prod; let Nginx proxy internally
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── React Frontend (Nginx) ────────────────────────────────────
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+      args:
+        VITE_BACK_END_URL: ${VITE_BACK_END_URL}
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY}
+    container_name: apexTrade-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
+  image_uploads:
+
+networks:
+  ecommerce-net:
+    driver: bridge
