@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import PaymentForm from './PaymentForm';
 import { createStripePaymentSecret } from '../../store/actions';
 
-const stripePromise = loadStripe('pk_test_51TJUBGILDiSs5BlSSasu0ehL03tdS05pFkBQBrywp8Ohb25gJ5nZn9Ikizu8WbWC9Kp4VLUjYnCRmMBOPRtI1zly00bAdtiYjJ');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const StripePayment = () => {
   const dispatch = useDispatch();

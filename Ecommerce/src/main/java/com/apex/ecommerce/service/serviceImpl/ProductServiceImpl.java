@@ -1,17 +1,9 @@
 package com.apex.ecommerce.service.serviceImpl;
 
-import com.apex.ecommerce.exception.APIException;
-import com.apex.ecommerce.exception.ResourceNotFoundException;
-import com.apex.ecommerce.model.Category;
-import com.apex.ecommerce.model.Product;
-import com.apex.ecommerce.model.User;
-import com.apex.ecommerce.util.AuthUtil;
-import com.apex.ecommerce.payload.ProductReqDTO;
-import com.apex.ecommerce.payload.ProductResDTO;
-import com.apex.ecommerce.repositories.CategoryRepo;
-import com.apex.ecommerce.repositories.ProductRepo;
-import com.apex.ecommerce.service.FileService;
-import com.apex.ecommerce.service.ProductService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,10 +13,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.apex.ecommerce.exception.APIException;
+import com.apex.ecommerce.exception.ResourceNotFoundException;
+import com.apex.ecommerce.model.Category;
+import com.apex.ecommerce.model.Product;
+import com.apex.ecommerce.model.User;
+import com.apex.ecommerce.payload.ProductReqDTO;
+import com.apex.ecommerce.payload.ProductResDTO;
+import com.apex.ecommerce.repositories.CategoryRepo;
+import com.apex.ecommerce.repositories.ProductRepo;
+import com.apex.ecommerce.service.FileService;
+import com.apex.ecommerce.service.ProductService;
+import com.apex.ecommerce.util.AuthUtil;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -52,6 +55,7 @@ public class ProductServiceImpl implements ProductService {
     private String imageBaseUrl;
 
     @Override
+    @Transactional
     public ProductReqDTO addProduct(ProductReqDTO productReqDTO, Integer categoryId) {
        Category category = categoryRepo.findById(categoryId)
                      .orElseThrow(() -> new ResourceNotFoundException("Category", "Category Id", categoryId));
