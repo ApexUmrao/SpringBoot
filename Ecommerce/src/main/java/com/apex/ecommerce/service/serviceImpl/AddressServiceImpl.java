@@ -1,5 +1,11 @@
 package com.apex.ecommerce.service.serviceImpl;
 
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.apex.ecommerce.exception.ResourceNotFoundException;
 import com.apex.ecommerce.model.Address;
 import com.apex.ecommerce.model.User;
@@ -7,13 +13,11 @@ import com.apex.ecommerce.payload.AddressDTO;
 import com.apex.ecommerce.repositories.AddressRepo;
 import com.apex.ecommerce.repositories.UserRepo;
 import com.apex.ecommerce.service.AddressService;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
+import jakarta.transaction.Transactional;
 
 @Service
+@Transactional
 public class AddressServiceImpl implements AddressService {
     @Autowired
     private AddressRepo addressRepository;
@@ -26,11 +30,16 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressDTO createAddress(AddressDTO addressDTO, User user) {
+
+        // ✅ Re-fetch user inside the transaction so address collection can be lazily loaded
+        User managedUser = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "userId", user.getUserId()));
+        
         Address address = modelMapper.map(addressDTO, Address.class);
-        address.setUser(user);
-        List<Address> addressesList = user.getAddress();
+        address.setUser(managedUser);
+        List<Address> addressesList = managedUser.getAddress();
         addressesList.add(address);
-        user.setAddress(addressesList);
+        managedUser.setAddress(addressesList);
         Address savedAddress = addressRepository.save(address);
         return modelMapper.map(savedAddress, AddressDTO.class);
     }
@@ -52,7 +61,12 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public List<AddressDTO> getUserAddresses(User user) {
-        List<Address> addresses = user.getAddress();
+    	
+    	// ✅ Re-fetch user inside the transaction so address collection can be lazily loaded
+        User managedUser = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "userId", user.getUserId()));
+
+        List<Address> addresses = managedUser.getAddress();
         return addresses.stream()
                 .map(address -> modelMapper.map(address, AddressDTO.class))
                 .toList();

@@ -45,7 +45,7 @@ services:
     networks:
       - ecommerce-net
     ports:
-      - "8080:8080"                 # remove this in prod; let Nginx proxy internally
+      - "8081:8080"                 # remove this in prod; let Nginx proxy internally
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 20s
@@ -61,6 +61,7 @@ services:
       args:
         VITE_BACK_END_URL: ${VITE_BACK_END_URL}
         VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY}
+        VITE_FRONTEND_URL: ${VITE_FRONTEND_URL}
     container_name: apexTrade-frontend
     restart: unless-stopped
     depends_on:

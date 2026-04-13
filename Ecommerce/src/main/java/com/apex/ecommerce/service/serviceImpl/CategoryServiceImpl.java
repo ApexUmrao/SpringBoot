@@ -38,9 +38,9 @@ public class CategoryServiceImpl implements CategoryService {
         Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortCategory);
         Page<Category> page = categoryRepo.findAll(pageDetails);
         List<Category> categories = page.getContent();
-        if (categories.isEmpty()) {
-            throw new APIException("No Category is Found");
-        }
+//        if (categories.isEmpty()) {
+//            throw new APIException("No Category is Found");
+//        }
         List<CategoryReqDTO> categoryReqDTOList = new ArrayList<>();
         for (Category category : categories) {
             CategoryReqDTO categoryReqDTO = modelMapper.map(category, CategoryReqDTO.class);

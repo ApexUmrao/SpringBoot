@@ -15,7 +15,7 @@ const useCategoryFilter = () => {
     const currentPage = searchParams.get("page")
       ? Number(searchParams.get("page"))
       : 1;
-    params.set("pageNumber", currentPage - 1); // Pagination starts from 0 for API
+    params.set("pageNo", currentPage - 1); // Pagination starts from 0 for API
 
     // Convert params to a query string
     const queryString = params.toString();

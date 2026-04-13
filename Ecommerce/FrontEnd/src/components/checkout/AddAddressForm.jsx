@@ -32,7 +32,7 @@ const AddAddressForm = ({ address, setOpenAddressModal }) => {
 
         useEffect(() => {
             if (address?.addressId) {
-                setValue("buildingName", address?.buildingName);
+                setValue("building", address?.buildingName);
                 setValue("city", address?.city);
                 setValue("street", address?.street);
                 setValue("state", address?.state);
@@ -58,7 +58,7 @@ const AddAddressForm = ({ address, setOpenAddressModal }) => {
                 <InputField
                     label="Building Name"
                     required
-                    id="buildingName"
+                    id="building"
                     type="text"
                     message="*Building Name is required"
                     placeholder="Enter Building Name"
