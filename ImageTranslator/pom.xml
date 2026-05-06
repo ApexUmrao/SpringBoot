@@ -14,7 +14,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>ImageTranslator</artifactId>
-    <version>1.0.0</version>
+    <version>1.0</version>
     <name>ImageTranslator</name>
 
     <properties>
@@ -71,6 +71,7 @@
     </dependencies>
 
     <build>
+    <finalName>ImageTranslator</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

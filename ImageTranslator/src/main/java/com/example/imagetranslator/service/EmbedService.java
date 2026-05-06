@@ -21,12 +21,18 @@ public class EmbedService {
      * We try each one in order and pick the first one available on the system.
      */
     private static final List<String> PREFERRED_FONTS = Arrays.asList(
-        "Nirmala UI",        // ✅ Windows 8+ — best Hindi support
-        "Mangal",            // ✅ Windows — Hindi (Devanagari)
-        "Arial Unicode MS",  // ✅ Wide Unicode support
-        "Segoe UI",          // ✅ Windows — partial Unicode
-        "Dialog",            // ✅ Java fallback — uses system fonts
-        "SansSerif"          // Last resort
+        // ── Linux / Docker (Noto fonts installed in Dockerfile) ──
+        "Noto Sans Devanagari",  // ✅ Best for Hindi in Docker/Linux
+        "Noto Sans",             // ✅ Wide Unicode — Linux
+        "Lohit Devanagari",      // ✅ Hindi fallback — Linux
+        // ── Windows ──────────────────────────────────────────────
+        "Nirmala UI",            // ✅ Windows 8+ — best Hindi
+        "Mangal",                // ✅ Windows XP+ — Hindi
+        "Arial Unicode MS",      // ✅ Windows + Office
+        "Segoe UI",              // ✅ Windows partial Unicode
+        // ── Generic fallbacks ─────────────────────────────────────
+        "Dialog",
+        "SansSerif"
     );
 
     public byte[] embed(BufferedImage original,
