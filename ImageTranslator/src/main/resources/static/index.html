@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Image Translator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#080d1a;color:#e2e8f0;
+     min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem}
+.wrap{max-width:700px;width:100%}
+h1{font-size:1.9rem;font-weight:900;text-align:center;color:#a78bfa;margin-bottom:.3rem}
+.sub{text-align:center;color:#475569;font-size:.85rem;margin-bottom:1.75rem}
+.card{background:#111827;border:1px solid #1e293b;border-radius:16px;padding:1.75rem;margin-bottom:1rem}
+.drop{border:2px dashed #2d3a55;border-radius:12px;padding:2.5rem;
+      text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1.2rem}
+.drop:hover,.drop.over{border-color:#6366f1;background:#12183a}
+.drop-icon{font-size:2.8rem;margin-bottom:.5rem}
+.drop-text{color:#64748b;font-size:.87rem;line-height:1.7}
+.drop-text strong{color:#a78bfa}
+input[type=file]{display:none}
+.row{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+select{flex:1;background:#1e293b;border:1px solid #334155;color:#e2e8f0;
+       padding:.6rem .9rem;border-radius:8px;font-size:.88rem;min-width:160px}
+.btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
+     border:none;padding:.65rem 1.6rem;border-radius:8px;
+     font-weight:800;cursor:pointer;font-size:.9rem;white-space:nowrap}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;
+     color:#475569;margin-bottom:.5rem;letter-spacing:.05em}
+.ibox{display:none;margin-bottom:1rem}
+.ibox img{width:100%;border-radius:10px;border:1px solid #1e293b;display:block}
+#st{border-radius:8px;padding:.7rem 1rem;font-size:.84rem;
+    display:none;margin-bottom:1rem;text-align:center}
+.sl{background:#0e2040;color:#38bdf8}
+.sk{background:#0a2318;color:#4ade80}
+.se{background:#210c0c;color:#f87171}
+.result-section{display:none;margin-top:1rem}
+.result-section .lbl{color:#4ade80}
+.result-img-wrap{position:relative;margin-bottom:.75rem}
+.result-img-wrap img{width:100%;border-radius:10px;border:2px solid #4ade80;display:block}
+.dl-btn{display:block;width:100%;text-align:center;
+        background:linear-gradient(135deg,#059669,#10b981);
+        color:#fff;padding:.75rem 2rem;border-radius:8px;
+        font-weight:800;text-decoration:none;font-size:.92rem;
+        cursor:pointer;border:none}
+.dl-btn:hover{opacity:.88}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+@media(max-width:500px){.compare{grid-template-columns:1fr}}
+.compare-box{text-align:center}
+.compare-box img{width:100%;border-radius:8px;border:1px solid #1e293b}
+.compare-lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;
+             color:#64748b;margin-bottom:.4rem;letter-spacing:.05em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌐 Image Translator</h1>
+  <p class="sub">Spring AI + GPT-4o Vision — translates text inside your image</p>
+
+  <div class="card">
+    <!-- Drop Zone -->
+    <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-text">
+        <strong>Click to upload</strong> or drag &amp; drop<br/>
+        PNG · JPEG · WEBP · Max 20MB
+      </div>
+    </div>
+    <input type="file" id="fi" accept="image/png,image/jpeg,image/webp"/>
+
+    <!-- Original Preview -->
+    <div class="ibox" id="preBox">
+      <div class="lbl">Original Image</div>
+      <img id="preImg" alt="original"/>
+    </div>
+
+    <!-- Controls -->
+    <div class="row">
+      <select id="lang">
+        <option value="Hindi">🇮🇳 Hindi</option>
+        <option value="French">🇫🇷 French</option>
+        <option value="Spanish">🇪🇸 Spanish</option>
+        <option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Chinese">🇨🇳 Chinese</option>
+        <option value="Japanese">🇯🇵 Japanese</option>
+        <option value="Korean">🇰🇷 Korean</option>
+        <option value="German">🇩🇪 German</option>
+        <option value="Portuguese">🇧🇷 Portuguese</option>
+        <option value="Russian">🇷🇺 Russian</option>
+        <option value="Italian">🇮🇹 Italian</option>
+        <option value="English">🇬🇧 English</option>
+      </select>
+      <button class="btn" id="tBtn" onclick="go()" disabled>🌐 Translate</button>
+    </div>
+
+    <!-- Status -->
+    <div id="st"></div>
+
+    <!-- Result Section -->
+    <div class="result-section" id="resultSection">
+      <div class="lbl">✅ Translation Complete!</div>
+
+      <!-- Side by side comparison -->
+      <div class="compare">
+        <div class="compare-box">
+          <div class="compare-lbl">Original</div>
+          <img id="compareOrig" alt="original"/>
+        </div>
+        <div class="compare-box">
+          <div class="compare-lbl">Translated</div>
+          <img id="compareResult" alt="translated"/>
+        </div>
+      </div>
+
+      <!-- Full size result -->
+      <div class="result-img-wrap">
+        <div class="lbl" style="margin-bottom:.5rem">Translated Image (Full Size)</div>
+        <img id="resImg" alt="translated result"/>
+      </div>
+
+      <!-- Download button -->
+      <button class="dl-btn" id="dlBtn" onclick="download()">
+        ⬇ Download Translated Image
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+var selectedFile = null;
+var resultBlob = null;
+var drop = document.getElementById('drop');
+var fi = document.getElementById('fi');
+
+// Drag and drop
+drop.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  drop.classList.add('over');
+});
+drop.addEventListener('dragleave', function() {
+  drop.classList.remove('over');
+});
+drop.addEventListener('drop', function(e) {
+  e.preventDefault();
+  drop.classList.remove('over');
+  if (e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]);
+});
+fi.addEventListener('change', function() {
+  if (fi.files[0]) pick(fi.files[0]);
+});
+
+function pick(f) {
+  selectedFile = f;
+  var url = URL.createObjectURL(f);
+
+  // Show original preview
+  document.getElementById('preImg').src = url;
+  document.getElementById('preBox').style.display = 'block';
+  document.getElementById('compareOrig').src = url;
+
+  // Hide result
+  document.getElementById('resultSection').style.display = 'none';
+  document.getElementById('tBtn').disabled = false;
+  setSt('', '');
+}
+
+function setSt(msg, cls) {
+  var el = document.getElementById('st');
+  el.textContent = msg;
+  el.className = cls;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function go() {
+  if (!selectedFile) return;
+  document.getElementById('tBtn').disabled = true;
+  document.getElementById('resultSection').style.display = 'none';
+  setSt('⏳ Sending to GPT-4o Vision... (5-20 seconds)', 'sl');
+
+  var fd = new FormData();
+  fd.append('file', selectedFile);
+  fd.append('targetLang', document.getElementById('lang').value);
+
+  fetch('/api/translate', { method: 'POST', body: fd })
+    .then(function(response) {
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers.get('content-type'));
+
+      if (!response.ok) {
+        return response.text().then(function(text) {
+          throw new Error('Server error ' + response.status + ': ' + text);
+        });
+      }
+      return response.blob();
+    })
+    .then(function(blob) {
+      console.log('Blob received, size:', blob.size, 'type:', blob.type);
+
+      if (blob.size === 0) {
+        throw new Error('Received empty image from server');
+      }
+
+      resultBlob = blob;
+
+      // Force image/png if content-type is wrong
+      var mimeType = blob.type || 'image/png';
+      var fixedBlob = new Blob([blob], { type: mimeType });
+      var url = URL.createObjectURL(fixedBlob);
+
+      // Set result image
+      var resImg = document.getElementById('resImg');
+      var compareResult = document.getElementById('compareResult');
+
+      resImg.onload = function() {
+        console.log('Result image loaded successfully');
+      };
+      resImg.onerror = function() {
+        console.error('Result image failed to load');
+        setSt('❌ Image received but failed to display. Try Download button.', 'se');
+      };
+
+      resImg.src = url;
+      compareResult.src = url;
+
+      // Show result section
+      document.getElementById('resultSection').style.display = 'block';
+      setSt('✅ Translation complete! Image updated below.', 'sk');
+
+      // Scroll to result
+      document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(function(err) {
+      console.error('Error:', err);
+      setSt('❌ ' + err.message, 'se');
+    })
+    .finally(function() {
+      document.getElementById('tBtn').disabled = false;
+    });
+}
+
+function download() {
+  if (!resultBlob) return;
+  var ext = selectedFile ? selectedFile.name.split('.').pop() : 'png';
+  var filename = 'translated_' + (selectedFile ? selectedFile.name : 'image.' + ext);
+  var url = URL.createObjectURL(resultBlob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
