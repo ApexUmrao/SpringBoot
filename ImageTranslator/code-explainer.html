@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Code Walkthrough</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#080d1a;color:#e2e8f0;padding:1.25rem;line-height:1.6}
+h1{font-size:1.6rem;font-weight:900;background:linear-gradient(135deg,#6366f1,#a78bfa,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:.25rem}
+.sub{text-align:center;color:#475569;font-size:.82rem;margin-bottom:1.25rem}
+.tabs{display:flex;gap:.35rem;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:.45rem 1rem;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;border:1px solid #1e293b;background:#111827;color:#64748b;transition:all .2s}
+.tab.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent}
+.panel{display:none}.panel.active{display:block}
+.card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:1.1rem;margin-bottom:.9rem}
+.card-title{font-size:.88rem;font-weight:800;color:#a78bfa;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.card-title .num{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:50%;width:22px;height:22px;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+p{font-size:.82rem;color:#94a3b8;line-height:1.7;margin-bottom:.6rem}
+p strong{color:#e2e8f0}
+code{background:#1e293b;padding:.1rem .38rem;border-radius:4px;font-family:monospace;font-size:.76rem;color:#38bdf8}
+pre{background:#0d1525;border:1px solid #1e293b;border-radius:8px;padding:.85rem;font-size:.73rem;line-height:1.7;overflow-x:auto;color:#94a3b8;white-space:pre-wrap;margin:.5rem 0}
+.flow{display:flex;flex-direction:column;gap:.4rem;margin:.5rem 0}
+.flow-step{display:flex;align-items:flex-start;gap:.7rem}
+.flow-icon{font-size:1.1rem;flex-shrink:0;margin-top:.1rem}
+.flow-content{flex:1}
+.flow-title{font-size:.8rem;font-weight:700;color:#e2e8f0;margin-bottom:.2rem}
+.flow-desc{font-size:.76rem;color:#64748b;line-height:1.5}
+.flow-arrow{text-align:center;color:#6366f1;font-size:1.2rem;line-height:1}
+.highlight{background:#1e293b;border-left:3px solid #6366f1;padding:.6rem .85rem;border-radius:0 8px 8px 0;margin:.5rem 0;font-size:.79rem;color:#cbd5e1;line-height:1.6}
+.token-box{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin:.5rem 0}
+@media(max-width:600px){.token-box{grid-template-columns:1fr}}
+.token-card{background:#0d1525;border:1px solid #1e293b;border-radius:8px;padding:.7rem;text-align:center}
+.token-num{font-size:1.4rem;font-weight:900;color:#a78bfa}
+.token-label{font-size:.7rem;color:#475569;margin-top:.2rem}
+.token-cost{font-size:.75rem;color:#4ade80;font-weight:700;margin-top:.2rem}
+.warn{background:#1c1005;border:1px solid #78350f;border-radius:8px;padding:.7rem .85rem;font-size:.78rem;color:#fbbf24;line-height:1.6;margin:.5rem 0}
+.tip{background:#0a1f14;border:1px solid #166534;border-radius:8px;padding:.7rem .85rem;font-size:.78rem;color:#4ade80;line-height:1.6;margin:.5rem 0}
+.badge{display:inline-block;padding:.12rem .45rem;border-radius:4px;font-size:.68rem;font-weight:700;margin:.15rem}
+.bb{background:#1e2a4a;color:#38bdf8}
+.bp{background:#2d1f5e;color:#a78bfa}
+.bg{background:#14291f;color:#4ade80}
+.bo{background:#2d1a0e;color:#fb923c}
+table{width:100%;border-collapse:collapse;font-size:.76rem;margin:.5rem 0}
+th{background:#1e293b;color:#a78bfa;padding:.5rem .75rem;text-align:left;font-weight:700}
+td{padding:.45rem .75rem;border-bottom:1px solid #1e293b;color:#94a3b8}
+tr:hover td{background:#0d1525}
+.arrow-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.arrow-box{background:#1e293b;border:1px solid #334155;border-radius:7px;padding:.35rem .65rem;font-size:.72rem;text-align:center;line-height:1.4}
+.arrow-sym{color:#6366f1;font-size:1rem}
+</style>
+</head>
+<body>
+
+<h1>🔍 Image Translator — Full Code Walkthrough</h1>
+<p class="sub">Flow · Internals · Tokens · Debugging Guide</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="sw('flow')">🔄 Full Flow</div>
+  <div class="tab" onclick="sw('ai')">🧠 AI & Tokens</div>
+  <div class="tab" onclick="sw('files')">📁 Each File</div>
+  <div class="tab" onclick="sw('debug')">🐛 Debug Guide</div>
+  <div class="tab" onclick="sw('docker')">🐳 Docker</div>
+</div>
+
+<!-- ═══════ TAB: FLOW ═══════ -->
+<div class="panel active" id="tab-flow">
+
+  <div class="card">
+    <div class="card-title">🔄 End-to-End Request Flow</div>
+    <div class="arrow-row">
+      <div class="arrow-box">🌐 Browser<br/><small>index.html</small></div><div class="arrow-sym">→</div>
+      <div class="arrow-box">🎯 Controller<br/><small>TranslateCtrl</small></div><div class="arrow-sym">→</div>
+      <div class="arrow-box">🧠 VisionService<br/><small>GPT-4o call</small></div><div class="arrow-sym">→</div>
+      <div class="arrow-box">🖊️ EmbedService<br/><small>Java2D draw</small></div><div class="arrow-sym">→</div>
+      <div class="arrow-box">💾 Save file<br/><small>disk + response</small></div><div class="arrow-sym">→</div>
+      <div class="arrow-box">📥 Browser<br/><small>auto-download</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="num">1</div> Browser sends multipart POST request</div>
+    <p>User selects an image and clicks <strong>Translate</strong>. The browser uses <code>FormData</code> to pack the image file + target language into a <strong>multipart/form-data</strong> HTTP POST request to <code>/api/translate</code>.</p>
+    <pre>POST /api/translate
+Content-Type: multipart/form-data
+
+Parts:
+  file      → binary image bytes (PNG/JPEG)
+  targetLang → "Hindi"</pre>
+    <div class="highlight">💡 Multipart means the HTTP body is split into "parts" — one for the file bytes, one for each text field. Spring's <code>@RequestPart</code> and <code>@RequestParam</code> unpack these automatically.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="num">2</div> TranslateCtrl receives and validates</div>
+    <p><code>TranslateCtrl.java</code> is the entry point. Spring Boot routes the HTTP request here because of <code>@PostMapping("/translate")</code>. It does 3 checks:</p>
+    <pre>1. file.isEmpty()          → reject if no file sent
+2. content-type check      → only image/png, image/jpeg, image/webp allowed
+3. file.getBytes()         → reads all image bytes into memory as byte[]</pre>
+    <p>The <code>byte[]</code> (raw image bytes) is then passed to <code>VisionService</code>. At this point the image is just bytes — not yet decoded into pixels.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="num">3</div> VisionService — sends image to GPT-4o</div>
+    <p>This is the core AI step. The image bytes + a text prompt are sent to OpenAI's GPT-4o model via <strong>Spring AI's ChatClient</strong>.</p>
+    <pre>chatClient.prompt()
+  .user(u -> u
+      .text(prompt)              ← text instruction
+      .media(mimeType, bytes)    ← image bytes
+  )
+  .call()
+  .content()                     ← GPT-4o's text response</pre>
+    <p>GPT-4o <strong>reads the image visually</strong> (like a human would) and returns a <strong>JSON array</strong> listing all text it found, the translation, and bounding box coordinates.</p>
+    <div class="highlight">💡 This single API call does what used to require TWO separate systems: Tesseract (OCR) + Google Translate. GPT-4o handles both in one shot.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="num">4</div> JSON parsing → TextRegion objects</div>
+    <p>GPT-4o returns a raw JSON string. Jackson's <code>ObjectMapper</code> parses it into a <code>List&lt;TextRegion&gt;</code>:</p>
+    <pre>// GPT-4o returns this string:
+[
+  {
+    "original_text": "Translate this text",
+    "translated_text": "इस पाठ का अनुवाद करें",
+    "x_percent": 17.58,   ← left edge = 17.58% of image width
+    "y_percent": 39.06,   ← top edge  = 39.06% of image height
+    "width_percent": 64.84,
+    "height_percent": 20.31
+  }
+]
+
+// Jackson maps this to:
+TextRegion {
+  originalText  = "Translate this text"
+  translatedText= "इस पाठ का अनुवाद करें"
+  xPct = 17.58, yPct = 39.06
+  wPct = 64.84, hPct = 20.31
+}</pre>
+    <p>Using <strong>percentages</strong> (not pixels) means the coordinates work for any image resolution — a 600x200px and a 3000x1000px image both use the same 0-100 scale.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="num">5</div> EmbedService — drawing onto the image</div>
+    <p><code>ImageIO.read()</code> decodes the raw bytes into a <code>BufferedImage</code> — a pixel grid in memory. Then <strong>Java2D</strong> (Java's built-in graphics library) draws onto it:</p>
+    <pre>Step A: Convert % coords → pixels
+  x = (17.58 / 100) × 600 = 105 px
+  y = (39.06 / 100) × 200 =  78 px
+  w = (64.84 / 100) × 600 = 389 px
+  h = (20.31 / 100) × 200 =  41 px
+
+Step B: Sample background color
+  Read pixels in that area → average RGB → use as fill color
+
+Step C: Erase original text
+  g.fillRect(x, y, w, h)  ← paint over original text
+
+Step D: Find Hindi-capable font
+  Try "Noto Sans Devanagari" → test canDisplayUpTo() → use it
+
+Step E: Auto-fit font size
+  Start at h × 0.72 = ~30px
+  Shrink until longest word fits in width w
+
+Step F: Draw translated text
+  g.drawString("इस पाठ का अनुवाद करें", x, y + ascent)</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="num">6</div> Save + Return response</div>
+    <p>The modified <code>BufferedImage</code> is encoded back to bytes via <code>ImageIO.write()</code>, saved to disk, and returned as HTTP response with <code>Content-Disposition: attachment</code> which tells the browser to auto-download it.</p>
+    <pre>ImageIO.write(canvas, "png", outputStream)  ← pixels → bytes
+Files.write(outputPath, resultBytes)         ← save to disk
+return new ResponseEntity(bytes, headers, 200) ← send to browser</pre>
+  </div>
+</div>
+
+<!-- ═══════ TAB: AI & TOKENS ═══════ -->
+<div class="panel" id="tab-ai">
+
+  <div class="card">
+    <div class="card-title">🧠 What is a Token?</div>
+    <p>OpenAI doesn't process text word by word — it uses <strong>tokens</strong>. A token is roughly <strong>¾ of a word</strong> or 4 characters in English.</p>
+    <pre>
+"Hello"         → 1 token
+"Translate"     → 1 token
+"this text"     → 2 tokens
+"इस पाठ का"    → ~6-8 tokens  (non-Latin scripts use more tokens per word)
+
+Rule of thumb:
+  100 tokens ≈ 75 English words
+  100 tokens ≈ 40-50 Hindi/Arabic words</pre>
+    <div class="highlight">💡 Everything costs tokens — your prompt, the image, AND the response. You're billed for total tokens in + tokens out.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 Token Breakdown for One Image Request</div>
+    <div class="token-box">
+      <div class="token-card">
+        <div class="token-num">~300</div>
+        <div class="token-label">Prompt tokens</div>
+        <div class="token-cost">~$0.0009</div>
+      </div>
+      <div class="token-card">
+        <div class="token-num">~500-1500</div>
+        <div class="token-label">Image tokens (depends on size)</div>
+        <div class="token-cost">~$0.001-0.005</div>
+      </div>
+      <div class="token-card">
+        <div class="token-num">~100-500</div>
+        <div class="token-label">Response tokens (JSON output)</div>
+        <div class="token-cost">~$0.001-0.005</div>
+      </div>
+    </div>
+    <p><strong>Total per image: ~$0.003 - $0.01</strong> depending on image size and amount of text.</p>
+    <pre>// Image token calculation (GPT-4o):
+Small image  (≤512×512px):  85 tokens  → ~$0.00025
+Medium image (600×200px):   ~500 tokens → ~$0.0015
+Large image  (2048×2048px): ~1700 tokens → ~$0.005
+
+// Formula for larger images:
+tiles = ceil(width/512) × ceil(height/512)
+tokens = 85 + (170 × tiles)</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💬 How ChatClient Works Internally</div>
+    <p>Spring AI's <code>ChatClient</code> is a wrapper around OpenAI's REST API. Here's what happens when you call <code>.call().content()</code>:</p>
+    <pre>1. ChatClient builds an HTTP request:
+   POST https://api.openai.com/v1/chat/completions
+   Authorization: Bearer sk-...
+   Content-Type: application/json
+
+   Body: {
+     "model": "gpt-4o",
+     "max_tokens": 4096,
+     "messages": [
+       {
+         "role": "user",
+         "content": [
+           {
+             "type": "text",
+             "text": "Detect ALL text in this image..."
+           },
+           {
+             "type": "image_url",
+             "image_url": {
+               "url": "data:image/png;base64,iVBORw0KGgo..."
+                                              ↑ your image as base64
+             }
+           }
+         ]
+       }
+     ]
+   }
+
+2. OpenAI processes it with GPT-4o Vision model
+   → model "sees" the image + reads the text prompt
+   → generates JSON response
+
+3. OpenAI returns:
+   {
+     "choices": [{
+       "message": {
+         "role": "assistant",
+         "content": "[{\"original_text\":\"...\"}]"
+       }
+     }],
+     "usage": {
+       "prompt_tokens": 823,
+       "completion_tokens": 124,
+       "total_tokens": 947
+     }
+   }
+
+4. Spring AI extracts choices[0].message.content
+   → returns it as a plain String to your VisionService</pre>
+    <div class="highlight">💡 The image is converted to <strong>Base64</strong> before sending. A 600×200 PNG (~6KB file) becomes ~8KB of Base64 text embedded in the JSON body.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 The Prompt — Why It Matters</div>
+    <p>The prompt is the most important part. Here's what each line does:</p>
+    <pre>
+"Detect ALL text in this image."
+  → tells GPT-4o to do OCR — find every piece of text
+
+"Translate each text block to Hindi."
+  → tells it to translate — combined OCR + translate
+
+"Return ONLY a raw JSON array, no markdown, no explanation."
+  → critical! without this, GPT wraps output in ```json fences
+  → our cleanJson() strips fences but it's better to prevent them
+
+"Each element must have exactly: {original_text, translated_text,
+  x_percent, y_percent, width_percent, height_percent}"
+  → forces a strict schema — GPT must return these exact field names
+  → Jackson needs exact field names to map to TextRegion class
+
+"If no text found return []."
+  → handles empty images cleanly — no null pointer exceptions</pre>
+    <div class="warn">⚠️ If GPT-4o ignores your schema and returns different field names (e.g. "text" instead of "original_text"), Jackson will parse it but all fields will be null — resulting in a blank image. This is why @JsonIgnoreProperties(ignoreUnknown=true) is on TextRegion.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💰 Token Optimization Tips</div>
+    <pre>
+1. RESIZE images before sending
+   → 600×400 uses far fewer tokens than 3000×2000
+   → Add this before calling visionService:
+   
+   BufferedImage resized = new BufferedImage(800, 600, TYPE_INT_RGB);
+   Graphics2D g = resized.createGraphics();
+   g.drawImage(original, 0, 0, 800, 600, null);
+
+2. COMPRESS PNG to JPEG for photos
+   → JPEG at quality 80 = ~10x smaller file = fewer image tokens
+
+3. LIMIT max_tokens in response
+   → Set spring.ai.openai.chat.options.max-tokens=1000
+   → JSON responses rarely need more than 500 tokens
+
+4. CACHE results
+   → Same image = same translation = no need to call API again
+   → Hash the image bytes, store result in a Map
+
+5. MONITOR usage
+   → Check platform.openai.com/usage daily
+   → Set hard limit at platform.openai.com/settings/limits</pre>
+  </div>
+</div>
+
+<!-- ═══════ TAB: FILES ═══════ -->
+<div class="panel" id="tab-files">
+
+  <div class="card">
+    <div class="card-title">📄 TextRegion.java — The Data Model</div>
+    <p>This is a simple <strong>POJO</strong> (Plain Old Java Object) that represents one block of text found in the image. Jackson uses <code>@JsonProperty</code> to map GPT-4o's JSON field names to Java field names.</p>
+    <pre>@JsonProperty("x_percent")   ← GPT returns "x_percent"
+private double xPct;          ← Java uses xPct (camelCase)
+
+// Why percentages?
+// GPT-4o doesn't know your image size in pixels
+// But it can estimate "this text starts 20% from the left"
+// EmbedService converts: pixels = (percent/100) × imageDimension</pre>
+    <div class="tip">✅ <code>@JsonIgnoreProperties(ignoreUnknown=true)</code> means if GPT adds extra fields (like it added "annotations" to OpenAI responses), Jackson silently ignores them instead of crashing.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 AppConfig.java — Spring Bean Wiring</div>
+    <p>This tells Spring how to create the <code>ChatClient</code> bean — the object that talks to OpenAI.</p>
+    <pre>@Bean
+public ChatClient chatClient(ChatClient.Builder builder) {
+    return builder.build();
+}
+// Spring AI auto-creates ChatClient.Builder using your
+// application.properties (api-key, model, etc.)
+// You just call .build() to get a ready-to-use client
+
+// Why @Bean?
+// Makes ChatClient available for @Autowired injection
+// everywhere in the app — VisionService gets it via
+// @RequiredArgsConstructor (Lombok generates constructor injection)</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 OpenAiApiConfig.java — Custom RestClient Fix</div>
+    <p>This exists only to fix the <strong>"annotations" unknown field</strong> bug. Spring AI M6 uses an internal <code>RestClient</code> with a strict <code>ObjectMapper</code>. We replace it with a tolerant one.</p>
+    <pre>// Problem: OpenAI added "annotations" field to responses
+// Spring AI M6's ObjectMapper doesn't know this field
+// Result: crash with "Unrecognized field annotations"
+
+// Fix: Create our own ObjectMapper with:
+ObjectMapper tolerantMapper = new ObjectMapper()
+    .configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+    //          ↑ silently ignore any unknown fields
+
+// Then inject it into OpenAiApi's RestClient
+// so ALL responses from OpenAI use this tolerant mapper</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 VisionService.java — The AI Bridge</div>
+    <p>Three responsibilities: build prompt, call GPT-4o, parse response.</p>
+    <pre>// 1. Build prompt (targetLanguage from application.properties)
+String prompt = "Detect ALL text... translate to " + targetLanguage;
+
+// 2. Wrap image bytes as Spring AI Media object
+Media media = new Media(MimeTypeUtils.parseMimeType(mimeType),
+                        new ByteArrayResource(imageBytes));
+// ByteArrayResource wraps byte[] so Spring AI can read it
+// MimeTypeUtils.parseMimeType("image/png") → MimeType object
+
+// 3. Call GPT-4o
+String raw = chatClient.prompt()
+    .user(u -> u.text(prompt).media(mimeType, bytes))
+    .call()
+    .content();    // blocks until GPT responds (~2-10 seconds)
+
+// 4. Clean JSON (GPT sometimes wraps in ```json fences)
+String cleaned = raw.replaceAll("^```[a-zA-Z]*\n?", "")
+                    .replaceAll("```\s*$", "");
+
+// 5. Parse into List&lt;TextRegion&gt;
+return objectMapper.readValue(cleaned,
+    new TypeReference&lt;List&lt;TextRegion&gt;&gt;() {});</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 EmbedService.java — Image Manipulation</div>
+    <p>Pure Java2D graphics. No external library needed — Java has built-in image drawing.</p>
+    <pre>// Key Java2D concepts:
+BufferedImage  → pixel grid in memory (like a 2D int array)
+Graphics2D     → drawing context (pen) for that image
+FontMetrics    → measures text width/height for a given font+size
+
+// deepCopy() — why?
+// Never draw on the original image
+// If something goes wrong, original is intact
+BufferedImage canvas = deepCopy(original);
+
+// sampleColor() — why?
+// We need to erase the original text cleanly
+// If background is white → fill white
+// If background is dark → fill dark
+// Samples a grid of pixels and averages their RGB
+
+// contrastColor() — luminance formula
+// lum = 0.299×R + 0.587×G + 0.114×B  (human eye weights)
+// lum > 0.5 → bright background → use BLACK text
+// lum ≤ 0.5 → dark background → use WHITE text
+
+// fitFont() — why auto-fit?
+// Translated text may be longer than original
+// "Hello" (5 chars) → "नमस्ते" (6 chars + wider glyphs)
+// Start at h×0.72, shrink 0.5pt at a time until it fits</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 TranslateCtrl.java — HTTP Layer</div>
+    <pre>@RestController    → all methods return data (not HTML views)
+@RequestMapping("/api")  → base URL prefix
+
+@PostMapping(value="/translate",
+             consumes=MULTIPART_FORM_DATA_VALUE)
+// consumes= restricts to multipart only
+// returns 415 Unsupported Media Type for plain JSON requests
+
+ContentDisposition.attachment().filename(filename).build()
+// "attachment" → browser downloads instead of displaying
+// "inline"     → browser displays in tab (what we DON'T want)
+
+// saveToDirectory():
+LocalDateTime.now().format("yyyyMMdd_HHmmss")
+// Timestamp prevents overwriting:
+// translated_20260506_123045_photo.png
+// translated_20260506_124512_photo.png  ← same name, different time</pre>
+  </div>
+</div>
+
+<!-- ═══════ TAB: DEBUG ═══════ -->
+<div class="panel" id="tab-debug">
+
+  <div class="card">
+    <div class="card-title">🐛 Debug Checklist by Symptom</div>
+    <table>
+      <tr><th>Symptom</th><th>Where to look</th><th>Likely cause</th></tr>
+      <tr><td>App won't start</td><td>Startup logs</td><td>Wrong API key, missing bean, port in use</td></tr>
+      <tr><td>401 Unauthorized</td><td>VisionService ERROR log</td><td>API key wrong or expired</td></tr>
+      <tr><td>429 Quota exceeded</td><td>VisionService ERROR log</td><td>No OpenAI credits</td></tr>
+      <tr><td>Empty regions []</td><td>VisionService INFO log</td><td>Image too small, no text, bad prompt</td></tr>
+      <tr><td>□□□ boxes in output</td><td>EmbedService WARN log</td><td>No Unicode font for that language</td></tr>
+      <tr><td>Text in wrong position</td><td>EmbedService DEBUG log</td><td>GPT-4o % coords inaccurate</td></tr>
+      <tr><td>Image not downloading</td><td>Browser F12 Network tab</td><td>Content-Type header wrong</td></tr>
+      <tr><td>"annotations" crash</td><td>Stack trace</td><td>Spring AI M6 + new OpenAI API field</td></tr>
+      <tr><td>NullPointerException</td><td>Stack trace line number</td><td>TextRegion field null — JSON field name mismatch</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔍 Reading the Logs — What Each Line Means</div>
+    <pre>
+INFO  TranslateCtrl : Received: sample.png (6031 bytes)
+  → Request reached controller ✅ HTTP layer working
+
+INFO  VisionService : Calling GPT-4o. Target language: Hindi
+  → About to make OpenAI API call
+
+DEBUG VisionService : GPT-4o response: [{...}]
+  → API call succeeded, raw JSON received ✅
+  → If you see ```json fences here → cleanJson() will strip them
+
+INFO  VisionService : Got 1 text regions from GPT-4o
+  → JSON parsed into TextRegion objects ✅
+  → If 0 here → image has no detectable text
+
+INFO  TranslateCtrl : Regions detected: 1
+  → Controller received regions from VisionService ✅
+
+INFO  TranslateCtrl : Image decoded: 600x200
+  → ImageIO.read() worked ✅
+  → If you don't see this line → crash happened before decode
+
+DEBUG EmbedService  : Font 'Noto Sans Devanagari' supports text
+INFO  EmbedService  : Using font: Noto Sans Devanagari
+  → Font found that supports Hindi ✅
+  → If WARN "No font found" → install fonts (see Docker tab)
+
+INFO  TranslateCtrl : Result image bytes: 4548
+  → Image successfully drawn and encoded ✅
+  → If 0 bytes here → ImageIO.write() failed
+
+INFO  TranslateCtrl : Saved to: /app/Images/.../translated_....png
+  → File saved to disk ✅</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧪 How to Test Each Layer in Isolation</div>
+    <pre>// Test 1: Is the API key working?
+curl https://api.openai.com/v1/models \
+  -H "Authorization: Bearer sk-YOUR_KEY"
+// Should return a JSON list of models
+
+// Test 2: Is the endpoint reachable?
+curl http://localhost:8080/api/health
+// Should return: "Image Translator is running!"
+
+// Test 3: Full translation via cURL (Windows)
+curl -X POST http://localhost:8080/api/translate ^
+  -F "file=@C:\path\to\test.png" ^
+  -F "targetLang=Hindi" ^
+  --output translated.png -v
+// -v shows all HTTP headers — check Content-Type in response
+
+// Test 4: Check what fonts are available in Docker
+docker exec -it image-translator bash
+fc-list | grep -i noto
+// Should show Noto fonts if installed correctly
+
+// Test 5: Check saved files
+docker exec -it image-translator ls -la /app/translated-images/</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚡ Common Code Mistakes to Watch For</div>
+    <pre>
+MISTAKE 1: TextRegion field names don't match GPT JSON
+  GPT returns:   "x_percent"
+  @JsonProperty: "xPercent"   ← WRONG, will be null
+  Fix:           "x_percent"  ← must match exactly
+
+MISTAKE 2: Forgetting cleanJson()
+  GPT sometimes returns:  ```json\n[{...}]\n```
+  ObjectMapper.readValue() crashes on the ``` prefix
+  Fix: always strip fences before parsing
+
+MISTAKE 3: Drawing on original instead of copy
+  g = original.createGraphics()  ← modifies original!
+  Fix: always deepCopy() first
+
+MISTAKE 4: Not handling empty regions
+  if (regions.isEmpty()) return original  ← skip drawing step
+  Without this: NullPointerException in EmbedService loop
+
+MISTAKE 5: Wrong Content-Disposition
+  "inline"     → browser shows image in tab, no download
+  "attachment" → browser downloads file automatically</pre>
+  </div>
+</div>
+
+<!-- ═══════ TAB: DOCKER ═══════ -->
+<div class="panel" id="tab-docker">
+
+  <div class="card">
+    <div class="card-title">🐳 Dockerfile — Layer by Layer</div>
+    <pre>FROM maven:3.9.6-eclipse-temurin-17 AS builder
+  → Use Maven + JDK 17 image for building
+  → "AS builder" names this stage — used in COPY --from=builder later
+
+COPY pom.xml .
+  → Copy ONLY pom.xml first (not src/)
+  → Docker caches this layer
+  → If pom.xml unchanged next build → skip dep download!
+
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn dependency:resolve -B -q
+  → --mount=type=cache persists .m2 folder between docker builds
+  → First build: downloads all deps (~2-5 min)
+  → Next builds: uses cache (~10 seconds)
+
+COPY src ./src
+  → Copy source code AFTER deps cached
+  → Source changes don't invalidate dep cache layer
+
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn clean package -DskipTests -B -q
+  → Build the JAR, skip tests, use cache
+
+FROM eclipse-temurin:17-jre-jammy
+  → Fresh minimal image — just JRE, no Maven/JDK
+  → "jammy" = Ubuntu 22.04 LTS base
+  → Result: smaller final image (~200MB vs ~500MB with JDK)
+
+COPY --from=builder /app/target/*.jar app.jar
+  → Only copy the JAR from builder stage
+  → Source code, Maven cache NOT in final image ✅</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔤 Font Installation in Docker</div>
+    <pre>RUN apt-get update && apt-get install -y \
+    fonts-noto \           ← Google Noto — 100+ language support
+    fonts-noto-core \      ← Latin, Greek, Cyrillic
+    fonts-noto-extra \     ← East Asian (Chinese, Japanese, Korean)
+    fonts-noto-ui-core \   ← UI variants (cleaner at small sizes)
+    fonts-deva \           ← Devanagari (Hindi, Marathi, Sanskrit)
+    fonts-lohit-deva \     ← Alternative Devanagari font
+    fonts-liberation \     ← Arial/Times/Courier replacements
+    fontconfig \           ← Font management system
+    && fc-cache -fv        ← Rebuild font cache (REQUIRED!)
+    && rm -rf /var/lib/apt/lists/*   ← Clean apt cache → smaller image
+
+// fc-cache -fv rebuilds the font index
+// Without this, Java can't find the newly installed fonts
+// -f = force rebuild, -v = verbose output</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌍 Environment Variables — How Spring reads them</div>
+    <pre>// In application.properties:
+spring.ai.openai.api-key=sk-xxx
+
+// In Docker run command:
+-e SPRING_AI_OPENAI_API_KEY=sk-xxx
+
+// Spring Boot auto-converts:
+// SPRING_AI_OPENAI_API_KEY (env var, uppercase+underscores)
+//    → spring.ai.openai.api-key (properties, dots+hyphens)
+
+// Same for custom properties:
+// app.target-language    → APP_TARGET_LANGUAGE
+// app.output.directory   → APP_OUTPUT_DIRECTORY
+
+// Priority (highest to lowest):
+// 1. Environment variables  ← Docker -e flag wins
+// 2. application.properties ← fallback
+// 3. @Value default value   ← last resort</pre>
+    <div class="tip">✅ Never hardcode API keys in application.properties when using Docker. Always pass via <code>-e</code> environment variable so the key is never baked into the image.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💾 Volume Mount — How file saving works</div>
+    <pre>// Docker command:
+-v C:/Users/shivanshu/translated-images:/app/translated-images
+
+// This creates a "bridge":
+//   Host (Windows)           Container (Linux)
+//   C:/Users/.../translated  ←→  /app/translated-images
+
+// When Java does:
+Files.write(Paths.get("/app/translated-images/file.png"), bytes)
+
+// The file appears on Windows at:
+// C:/Users/shivanshu/translated-images/file.png  ✅
+
+// Without -v:
+// Files saved inside container only
+// Lost when container is deleted!</pre>
+  </div>
+</div>
+
+<script>
+function sw(id) {
+  var ids = ['flow','ai','files','debug','docker'];
+  document.querySelectorAll('.tab').forEach(function(t, i) {
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.panel').forEach(function(p) {
+    p.classList.remove('active');
+  });
+  document.getElementById('tab-' + id).classList.add('active');
+}
+</script>
+</body>
+</html>
