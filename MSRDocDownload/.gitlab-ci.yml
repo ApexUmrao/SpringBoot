@@ -1,0 +1,28 @@
+include:
+  - project: 'nstl/delivery/ap2-middle-east/adcb/bpm-transformation-journey-2024-extension/cicd-templates'
+    file: 'BuildTemplates/build.gitlab-ci.yml'
+  - project: 'nstl/delivery/ap2-middle-east/adcb/bpm-transformation-journey-2024-extension/cicd-templates'
+    file: 'TestTemplates/test.gitlab-ci.yml'
+  - project: 'nstl/delivery/ap2-middle-east/adcb/bpm-transformation-journey-2024-extension/cicd-templates'
+    file: 'CodeQuality/sonarqube.gitlab-ci.yml'
+
+# Specify the base image to use for the job
+workflow:
+  rules:
+    - changes:
+      - .gitlab-ci.yml
+# Define stages of the pipelines 2
+stages:
+  - build
+  - test
+
+# Define jobs  
+build:
+  stage: build
+  extends: .doMavenBuild()
+#test:
+ # stage: test
+  #extends:  .doMavenTest()
+#sonar:
+  #stage: test
+ # extends: .doSonarQubeScan()
