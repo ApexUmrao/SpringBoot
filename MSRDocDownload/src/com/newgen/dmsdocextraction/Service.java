@@ -131,7 +131,7 @@ public class Service implements Callable<List<DocumentDetails>> {
 						try{
 							//Added by Shivanshu
 							String fetchedDocuments =  parsergetlist.getValueOf("APSelectWithColumnNames_Output");	
-							downloadDocuments(fetchedDocuments, workitemNo);
+							downloadDocuments(fetchedDocuments, workitemNo , strCIF);
 						}catch (Exception e) {
 							LogMe.logger.info("Exception Found"+e);
 						}
@@ -228,7 +228,7 @@ public class Service implements Callable<List<DocumentDetails>> {
 		return listDocDetails;
 	}
 
-	public void downloadDocuments(String fetchedDocuments, String workitemNo) throws Exception{
+	public void downloadDocuments(String fetchedDocuments, String workitemNo , String CustomerID) throws Exception{
 		LogMe.logger.info("[downloadDocuments]" +"  fetchedDocuments "+fetchedDocuments);
 		String folderLocation = comObj.strDocDownLoadPath;
 		String JTSIP = comObj.strJTSIP;
@@ -243,7 +243,7 @@ public class Service implements Callable<List<DocumentDetails>> {
 			int deadEnd = parser.getEndIndex("Records", start, 0);
 			int noOfFields = parser.getNoOfFields("Record", start, deadEnd);
 
-			String folderPath =  folderLocation + "/" +workitemNo;
+			String folderPath =  folderLocation +   File.separator  + CustomerID + File.separator + workitemNo;
 			LogMe.logger.info("[downloadDocuments]" +"folderPath : "+ folderPath);
 			File file = new File(folderPath);
 			if (!file.exists()) {

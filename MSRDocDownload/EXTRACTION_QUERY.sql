@@ -1,0 +1,37 @@
+CREATE TABLE MSR_DOC_EXTRACTION
+(CUSTOMER_CID NVARCHAR2(256),
+THREAD_NAME NVARCHAR2(128),
+STATUS NVARCHAR2(64),
+DATE_TIME NVARCHAR2(128)
+);
+
+
+SELECT * FROM MSR_DOC_EXTRACTION WHERE STATUS ='N' AND ROWNUM <=1;
+
+delete from msr_doc_extraction;
+
+--DROP TABLE MSR_DOC_EXTRACTION;
+
+SELECT CUSTOMER_CID FROM MSR_DOC_EXTRACTION WHERE STATUS ='N' AND ROWNUM <=1; --MSR-0000292350-Process
+
+UPDATE MSR_DOC_EXTRACTION SET status = 'N';
+  
+  select * from pdbdocument where documentindex in 
+  (select documentindex from pdbdocumentcontent where parentfolderindex in
+  (select itemindex from usr_0_ext_msr where cid =  '10204143'))
+  order by pdbdocument.createddatetime;
+
+
+SELECT d.DOCUMENTINDEX, d.NAME, d.CREATEDDATETIME,d.REVISEDDATETIME,d.AUTHOR,d.NOOFPAGES, d.IMAGEINDEX 
+FROM PDBDOCUMENT d  WHERE d.DOCUMENTINDEX IN (SELECT pd.DOCUMENTINDEX 
+FROM PDBDOCUMENTCONTENT pd where pd.PARENTFOLDERINDEX IN 
+(SELECT ext.ITEMINDEX,ext.msrreqid FROM USR_0_EXT_MSR ext WHERE ext.CID = '10204143')) 
+AND TRUNC(d.CREATEDDATETIME) <= '25-JUN-2025' ORDER BY d.CREATEDDATETIME DESC;
+
+
+SELECT * FROM USR_0_EXT_MSR WHERE MSRREQID IS NOT NULL and CID IS NOT NULL order by MSRREQID  desc; --10204143
+select folderindex from pdbfolder where name in (select MSRREQID from usr_0_ext_msr where cid='10204143');
+
+select MSRREQID from usr_0_ext_msr where cid='10204143';
+
+Insert into MSR_DOC_EXTRACTION (CUSTOMER_CID,THREAD_NAME,STATUS,DATE_TIME) values ('10204143','THREAD-0','N',sysdate);

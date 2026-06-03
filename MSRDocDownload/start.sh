@@ -1,1 +1,1 @@
-"/appl/JBOSS/jdk1.8.0_261/bin/WBGRetry" -classpath lib/*:WBGRetry.jar com.newgen.repair.Retry
+"/appl/JBOSS/jdk1.8.0_261/bin/MSRDocDownload" -classpath lib/*:MSRDocDownload.jar com.newgen.dmsdocextraction.DMSDocExtraction
