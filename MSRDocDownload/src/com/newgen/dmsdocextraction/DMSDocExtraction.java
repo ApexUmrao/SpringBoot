@@ -57,10 +57,9 @@ public class DMSDocExtraction {
 			LogMe.logger.info("~~~~~~~~~~~~~~~~~~ReadProperty Method Success of DMSDocExtraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 //			if (comObj.conCabinet()) {
 				try {
-					String tableName="MSR_DOC_EXTRACTION"; //New tablename -- col -- CUSTOMER_CID,STATUS,THREAD_NAME
-//					int insertCount = comObj.insertExcelIntoDB(comObj.strXLSXFilePath,tableName);
-					LogMe.logger.info("Total row inserted : " + tableName);
-
+//					String tableName="BPM_DOC_DOWNLOAD"; 
+//					int insertCount = comObj.insertExcelDataIntoDB(comObj.strXLSXFilePath,tableName);
+//					LogMe.logger.info("Total row inserted : " + insertCount);
 
 					int threadCount = Integer.parseInt(comObj.strThreadCount);
 					ExecutorService executor = Executors.newFixedThreadPool(threadCount);

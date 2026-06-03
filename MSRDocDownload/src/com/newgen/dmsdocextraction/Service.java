@@ -57,141 +57,72 @@ public class Service implements Callable<List<DocumentDetails>> {
 		try {
 			boolean running =true;
 			while(running) {
-				//				String outputqryXML = comObj.getAPSelect("SELECT CUSTOMER_CID FROM MSR_DOC_EXTRACTION WHERE STATUS ='N' AND ROWNUM <=1",2);
 
-
-				String sQuery = "SELECT CUSTOMER_CID FROM MSR_DOC_EXTRACTION WHERE STATUS ='N' AND ROWNUM <=1";
-
+				String sQuery = "SELECT WORKITEM_NUMBER FROM BPM_DOC_DOWNLOAD WHERE STATUS ='N' ORDER BY CREATEDDATETIME ";
 
 				String outputqryXML = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,sQuery,comObj.sessionId));
 				XMLParser xpareser = new XMLParser(outputqryXML);
 				String outputString = xpareser.getValueOf("APSelectWithColumnNames_Output");	
-				LogMe.logger.info("[executeOnWI]" + "executeOnWI sQuery : " + outputqryXML);
 				LogMe.logger.info("[executeOnWI]" + "executeOnWI outputString : " + outputString);
-				//				LogMe.logger.info("[executeOnWI]" + "executeOnWI sQuery : " + xp);
-
-				//				XMLParser xp = new XMLParser(outputqryXML);
 
 				if (xpareser.getValueOf("TotalRetrieved").equals("1")) {
-					String strCIF = xpareser.getValueOf("CUSTOMER_CID");
-					LogMe.logger.info("strCIF = " + strCIF );
-
-					//					if (strCIF != null && !strCIF.isEmpty()) {
-					//						comObj.updateData("STATUS,THREAD_NAME", "P','"+Thread.currentThread().getName(), "MSR_DOC_EXTRACTION", "CUSTOMER_CID='"+strCIF+"'");
-					//					}
+					String wiName = xpareser.getValueOf("WORKITEM_NUMBER");
+					LogMe.logger.info("wiName = " + wiName );
 
 					try{
 						String updateQuery = "";
 						int mainCode = -1;
-						String status = "P";
+						String status = "D";
 						LogMe.logger.info("[updateCalls]" + " comObj.sessionId --> " +comObj.sessionId + " || " + comObj.strCabName);
 
-						updateQuery = GenerateXml.APUpdate("MSR_DOC_EXTRACTION", "STATUS, THREAD_NAME", 
-								"'"+status+"','"+Thread.currentThread().getName()+"'", "CUSTOMER_CID='"+strCIF+"'", 
+						updateQuery = GenerateXml.APUpdate("BPM_DOC_DOWNLOAD", "STATUS, THREAD_NAME", 
+								"'"+status+"','"+Thread.currentThread().getName()+"'", "WORKITEM_NUMBER='"+wiName+"'", 
 								comObj.sessionId,comObj.strCabName);
 						LogMe.logger.info("[updateCalls]" + " Update Query " +updateQuery);
 						XMLParser xmlDataParser1 = new XMLParser(updateQuery);
 						mainCode = Integer.parseInt(xmlDataParser1.getValueOf("MainCode"));
-						LogMe.logger.info("[updateCalls]" + " Main Code " +mainCode);
+						
+						LogMe.logger.info("[updateCalls]" + " mainCode Update Query " +mainCode);
+
 					}catch (Exception e) {
-						LogMe.logger.info("Exception Found"+e);
+						LogMe.logger.error("Exception Found"+e);
 					}
 
-					String query= "SELECT ITEMINDEX, MSRREQID FROM USR_0_EXT_MSR WHERE CID = '" + strCIF + "'";
-
-					String outputXML = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,query,comObj.sessionId));
-
-					XMLParser xp = new XMLParser(outputXML);
-					int start = xp.getStartIndex("Records", 0, 0);
-					int deadEnd = xp.getEndIndex("Records", start, 0);
-					int noOfFields = xp.getNoOfFields("Record", start,deadEnd);
-					int end = 0;
-					for(int i = 0; i < noOfFields; ++i){
-						start = xp.getStartIndex("Record", end, 0);
-						end = xp.getEndIndex("Record", start, 0);
-						String itemIndex = xp.getValueOf("ITEMINDEX", start, end);
-						String workitemNo = xp.getValueOf("MSRREQID", start, end);
-
-
-						String strQuery = "SELECT d.DOCUMENTINDEX ,d.IMAGEINDEX, d.VOLUMEID, d.NOOFPAGES, d.DOCUMENTSIZE, d.APPNAME, d.COMMNT, d.NAME , d.AUTHOR "
-								+ "FROM PDBDOCUMENT d  WHERE d.DOCUMENTINDEX IN "
-								+ "(SELECT pd.DOCUMENTINDEX FROM PDBDOCUMENTCONTENT pd where pd.PARENTFOLDERINDEX IN ("
-								+ itemIndex + ")) AND TRUNC(d.CREATEDDATETIME) <= '"+ comObj.strDATECRITERIA + "' ORDER BY d.CREATEDDATETIME DESC";
-
-						XMLParser parsergetlist = null;
+//					String query= "SELECT ITEMINDEX, MSRREQID FROM USR_0_EXT_MSR WHERE CID = '" + strCIF + "'";
+//
+//					String outputXML = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,query,comObj.sessionId));
+//
+//					XMLParser xp = new XMLParser(outputXML);
+//					int start = xp.getStartIndex("Records", 0, 0);
+//					int deadEnd = xp.getEndIndex("Records", start, 0);
+//					int noOfFields = xp.getNoOfFields("Record", start,deadEnd);
+//					int end = 0;
+//					for(int i = 0; i < noOfFields; ++i){
+//						start = xp.getStartIndex("Record", end, 0);
+//						end = xp.getEndIndex("Record", start, 0);
+//						String itemIndex = xp.getValueOf("ITEMINDEX", start, end);
+//						String workitemNo = xp.getValueOf("MSRREQID", start, end);
 
 
-						//					String xmlqryExtractedfields = comObj.getAPSelect(strQuery, 11);
-						//					parsergetlist = new XMLParser(xmlqryExtractedfields);
+						String strQuery = "SELECT d.DOCUMENTINDEX ,d.IMAGEINDEX, d.VOLUMEID, d.NOOFPAGES, "
+								+ "d.DOCUMENTSIZE, d.APPNAME, d.COMMNT, d.NAME , d.AUTHOR "
+								+ "FROM "+comObj.cabinetTable+".PDBDOCUMENT d  WHERE d.DOCUMENTINDEX IN "
+								+ "(SELECT pd.DOCUMENTINDEX FROM "+comObj.cabinetTable+".PDBDOCUMENTCONTENT pd where pd.PARENTFOLDERINDEX IN "
+								+ "(SELECT pdb.FOLDERINDEX FROM "+comObj.cabinetTable+".PDBFOLDER pdb where pdb.NAME = '" + wiName + "')) "
+								+ " ORDER BY d.CREATEDDATETIME DESC";
+
 
 						String xmlqryExtractedfields = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,strQuery,comObj.sessionId));
-						parsergetlist= new XMLParser(xmlqryExtractedfields);
+						XMLParser parsergetlist = new XMLParser(xmlqryExtractedfields);
 						LogMe.logger.info("[executeOnWI]" + "executeOnWI sQuery : " + strQuery);
 
 						try{
 							//Added by Shivanshu
 							String fetchedDocuments =  parsergetlist.getValueOf("APSelectWithColumnNames_Output");	
-							downloadDocuments(fetchedDocuments, workitemNo , strCIF);
+							downloadDocuments(fetchedDocuments , wiName);
 						}catch (Exception e) {
 							LogMe.logger.info("Exception Found"+e);
 						}
-
-
-
-						//					DownloadDocumentBean obj = new DownloadDocumentBean();
-						//					if (parsergetlist.getValueOf("MainCode").equals("0")) {
-						//						String strTotRecords = parsergetlist.getValueOf("TotalRetrieved");
-						//						LogMe.logger.info("totalRecords doc Exists: " + strTotRecords);
-						//						System.out.println("totalRecords doc Exists1: " + strTotRecords);
-						//						int t = Integer.parseInt(strTotRecords);
-						//						wfXmlResponseFI = new WFXmlResponse(xmlqryExtractedfields);
-						//						wfxmllistFI = wfXmlResponseFI.createList("Records", "Record");
-						//						wfxmllistFI.reInitialize(true);
-						//						for (; wfxmllistFI.hasMoreElements(true); wfxmllistFI.skip(true)) {
-						//							// Creating a Map with String keys and String values
-						//							DocumentDetails objDocDetails = new DocumentDetails();
-						//							// Adding values to the Map
-						//							objDocDetails.setCUSTOMER_CIF(strCIF);
-						//							objDocDetails.setTOTAL_RECORDS(strTotRecords);
-						//							if (t > 0) {
-						//								objDocDetails.setDOC_STATUS("EXIST");
-						//								if (!comObj.isempty(wfxmllistFI.getVal("DOCUMENTINDEX").trim())) {
-						//									strDOCUMENTINDEX = wfxmllistFI.getVal("DOCUMENTINDEX").trim();
-						//									objDocDetails.setDOCUMENT_INDEX(strDOCUMENTINDEX);
-						//									System.out.println("strDOCUMENTINDEX ===== " + strDOCUMENTINDEX);
-						//								}
-						//								if (!comObj.isempty(wfxmllistFI.getVal("NAME").trim())) {
-						//									strNAME = wfxmllistFI.getVal("NAME").trim();
-						//									objDocDetails.setDOCUMENT_NAME(strNAME);
-						//								}
-						//								if (!comObj.isempty(wfxmllistFI.getVal("CREATEDDATETIME").trim())) {
-						//									strCREATEDDATETIME = wfxmllistFI.getVal("CREATEDDATETIME").trim();
-						//									objDocDetails.setDOCUMENT_CREATEDDATETIME(strCREATEDDATETIME);
-						//								}
-						//								if (!comObj.isempty(wfxmllistFI.getVal("REVISEDDATETIME").trim())) {
-						//									strREVISEDDATETIME = wfxmllistFI.getVal("REVISEDDATETIME").trim();
-						//									objDocDetails.setDOCUMENT_REVISEDDATETIME(strREVISEDDATETIME);
-						//								}
-						//								if (!comObj.isempty(wfxmllistFI.getVal("AUTHOR").trim())) {
-						//									strAUTHOR = wfxmllistFI.getVal("AUTHOR").trim();
-						//									objDocDetails.setAUTHOR(strAUTHOR);
-						//								}
-						//								if (!comObj.isempty(wfxmllistFI.getVal("NOOFPAGES").trim())) {
-						//									strNOOFPAGES = wfxmllistFI.getVal("NOOFPAGES").trim();
-						//									objDocDetails.setNOOFPAGES(strNOOFPAGES);
-						//								}
-						//
-						//								LogMe.logger.info("TotalRetrieved doc Exists: " + t);
-						//								System.out.println("totalRecords doc Exists2: " + t);
-						//								System.out.println("strDOCUMENTINDEX = " + strDOCUMENTINDEX + " || strNAME = " + strNAME + " || strCREATEDDATETIME = " + strCREATEDDATETIME);
-						//								DocumentDetails objSts = comObj.callDownloadDocumentServiceOfProduct(objDocDetails, strDOCUMENTINDEX, strCIF );
-						//								objDocDetails.setOUTPUT_FILENAME(objSts.getOUTPUT_FILENAME());
-						//							} else {
-						//								objDocDetails.setDOC_STATUS("NO DOCUMENTS EXIST!");
-						//							}
-						//							listDocDetails.add(objDocDetails);			
-						//						}
-						//					}
 
 						String timeStampChk = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 						LogMe.logger.info("timeStamp = " + timeStampChk);
@@ -215,9 +146,9 @@ public class Service implements Callable<List<DocumentDetails>> {
 							running=false;
 						}
 					}
-				}
-				else {
-					LogMe.logger.info("No more customer cif to process");
+				
+					else {
+					LogMe.logger.info("No more customer workitems to process");
 					break;
 				}
 			}
@@ -228,7 +159,7 @@ public class Service implements Callable<List<DocumentDetails>> {
 		return listDocDetails;
 	}
 
-	public void downloadDocuments(String fetchedDocuments, String workitemNo , String CustomerID) throws Exception{
+	public void downloadDocuments(String fetchedDocuments, String workitemNo ) throws Exception{
 		LogMe.logger.info("[downloadDocuments]" +"  fetchedDocuments "+fetchedDocuments);
 		String folderLocation = comObj.strDocDownLoadPath;
 		String JTSIP = comObj.strJTSIP;
@@ -243,7 +174,7 @@ public class Service implements Callable<List<DocumentDetails>> {
 			int deadEnd = parser.getEndIndex("Records", start, 0);
 			int noOfFields = parser.getNoOfFields("Record", start, deadEnd);
 
-			String folderPath =  folderLocation +   File.separator  + CustomerID + File.separator + workitemNo;
+			String folderPath =  folderLocation + File.separator + workitemNo;
 			LogMe.logger.info("[downloadDocuments]" +"folderPath : "+ folderPath);
 			File file = new File(folderPath);
 			if (!file.exists()) {

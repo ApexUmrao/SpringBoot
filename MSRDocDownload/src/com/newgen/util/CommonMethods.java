@@ -38,9 +38,11 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import org.w3c.dom.Document;
@@ -49,8 +51,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-
-
+import com.newgen.AESEncryption;
 import com.newgen.beans.DocumentDetails;
 import com.newgen.connection.XMLParser;
 import com.newgen.log.LogMe;
@@ -106,7 +107,7 @@ public class CommonMethods {
 	public String strEDMSCABINET = "";
 	public String strVolumeID = "";
 	public String sessionId = "";
-
+	public String cabinetTable = "";
 
 	public String ReadProperty() {
 		try {
@@ -151,8 +152,13 @@ public class CommonMethods {
 					return NG_FAIL;
 				}
 				
-				
 				//Added by Shivanshu
+				if ((prop.getProperty("CabinetTable") != null) && (!prop.getProperty("CabinetTable").equals(""))) {
+					cabinetTable = prop.getProperty("CabinetTable").trim();
+				} else {
+					LogMe.logger.error("\n[ERROR] CabinetTable not specified in the Settings.ini file.");
+					return NG_FAIL;
+				}
 				
 				if ((prop.getProperty("JTSIP") != null) && (!prop.getProperty("JTSIP").equals(""))) {
 					strJTSIP = prop.getProperty("JTSIP").trim();
@@ -175,8 +181,6 @@ public class CommonMethods {
 					return NG_FAIL;
 				}
 				
-				
-
 				if ((prop.getProperty("VolumeID") != null) && (!prop.getProperty("VolumeID").equals(""))) {
 					 strVolumeID = prop.getProperty("VolumeID").trim();
 				} else {
@@ -207,6 +211,11 @@ public class CommonMethods {
 				}
 				if ((prop.getProperty("Password") != null) && (!prop.getProperty("Password").equals(""))) {
 					strPwd = prop.getProperty("Password").trim();
+					try {
+						strPwd = AESEncryption.decrypt(strPwd);
+					} catch (Exception ex) {
+						LogMe.logger.error("\n[ERROR] Password not decrypted successfully.");
+					}
 				} else {
 					//System.out.println("\n[ERROR] Login Username not specified in the configuration file.");
 					LogMe.logger.error("\n[ERROR] Password not specified in the Settings.ini file.");
@@ -966,7 +975,7 @@ public class CommonMethods {
 //				LogMe.logger.info("insertExcelIntoDB custCategory: " +custCategory);
 
 				if(!"".equalsIgnoreCase(custCID)) {
-					String outputXML = insertData("DATE_TIME,CUSTOMER_CID,STATUS", "SYSDATE,'"+custCID+"','N'", tableName);
+					String outputXML = GenerateXml.apInsertInputXml(strCabName,sessionId,"DATE_TIME,CUSTOMER_CID,STATUS", "SYSDATE,'"+custCID+"','N'", tableName);
 					LogMe.logger.info("insertExcelIntoDB outputXML: " + outputXML);
 					insertCount++;
 				}
@@ -977,163 +986,212 @@ public class CommonMethods {
 		}
 		return insertCount;
 	}
-
-
-	public String insertData(String colName, String values, String tableName) {
-		LogMe.logger.info("Inside insertData method");
-		LogMe.logger.info("colName to be insert======" + colName);
-		LogMe.logger.info("value to be insert==" + values);
-		StringBuilder inputxml = new StringBuilder();
-		inputxml = inputxml.append("<?xmlversion=\"1.0\"?>");
-		inputxml = inputxml.append("<APInsert>");
-		inputxml = inputxml.append("<Option>APInsert</Option>");
-		inputxml = inputxml.append("<ProcessDefId>").append(strUsername).append("</ProcessDefId>");
-		inputxml = inputxml.append("<Status>true</Status>");
-		inputxml = inputxml.append("<SessionId>").append(strSessionId).append("</SessionId>");
-		inputxml = inputxml.append("<EngineName>").append(strCabName).append("</EngineName>");
-		inputxml = inputxml.append("<TableName>").append(tableName).append("</TableName>");
-		inputxml = inputxml.append("<ColName>"+colName+"</ColName>");
-		inputxml = inputxml.append("<Values>"+values+"</Values>");
-		inputxml = inputxml.append("</APInsert>");
-		LogMe.logger.info("inputxml==" + inputxml);
-		XMLParser parsergetlist = null;
-		String strCompOutputXml = null;
-		try {
-			strCompOutputXml = executeCallBroker(inputxml.toString());
-			parsergetlist = new XMLParser(strCompOutputXml);
-			if (parsergetlist.getValueOf("MainCode").equals("0")) {
-				return (parsergetlist.getValueOf("MainCode"));
-			} else {
-				return "";
-			}
-		} catch (Exception e) {
-			LogMe.logger.info("[Error]Error in insert the data" + e);
-			return "";
-		} finally {
-			if (strCompOutputXml != null) {
-				strCompOutputXml = null;
-			}
-			if (parsergetlist != null) {
-				parsergetlist = null;
-			}
-			if (inputxml != null) {
-				inputxml = null;
-			}
-		}
-	}
-
-	public void moveToHistoryTable() {
-
-	}
-
-
-	public int executeAPProcedure(String procName, String inValues, int noofCols) {
-		String strOutputXmlFI = null;
-		StringBuilder strBuffFI = new StringBuilder();
-
-		strBuffFI = strBuffFI.append("<?xmlversion=\"1.0\"?>");
-		strBuffFI = strBuffFI.append("<APProcedure_Input>");
-		strBuffFI = strBuffFI.append("<Option>APProcedureExtd</Option>");
-		strBuffFI = strBuffFI.append("<EngineName>").append(strCabName).append("</EngineName>");
-		strBuffFI = strBuffFI.append("<SessionId>").append(strSessionId).append("</SessionId>");
-		strBuffFI = strBuffFI.append("<ProcName>").append(procName).append("</ProcName>");
-		strBuffFI = strBuffFI.append("<Params>").append(inValues).append("</Params>");
-		strBuffFI = strBuffFI.append("<NoOfCols>").append(noofCols).append("</NoOfCols>");
-		strBuffFI = strBuffFI.append("</APProcedure_Input>");
-		LogMe.logger.info("strBuffFI==" + strBuffFI);
-		strOutputXmlFI = executeCallBroker(strBuffFI.toString());
-		LogMe.logger.info("executeAPProcedure strOutputXmlFI=" + strOutputXmlFI);
-		XMLParser xp = new XMLParser(strOutputXmlFI);
-		
-		return Integer.parseInt(xp.getValueOf("MainCode"));
-	}
 	
-	private void initializeSocket() {
-		try{
-			String sQuery1 = "SELECT (SELECT VALUE FROM BPM_SERVICE_CONFIG WHERE KEY = 'SOCKETIP') IP,"
-					+ "(SELECT VALUE FROM BPM_SERVICE_CONFIG WHERE KEY = 'SOCKETPORT') PORT FROM DUAL";
-			String outputXml = ExecuteXML.executeXML(
-					GenerateXml.APSelectWithColumnNames(strCabName,sQuery1,strSessionId));
-			LogMe.logger.info("outputXml="+outputXml);
-			XMLParser xmlDataParser1 = new XMLParser(outputXml);
-			int mainCode = Integer.parseInt(xmlDataParser1.getValueOf("MainCode"));
-			if (mainCode == 0) {
-				String ip = xmlDataParser1.getValueOf("IP");
-				String port = xmlDataParser1.getValueOf("PORT");
-				socket = ConnectSocket.getReference(strIP, Integer.parseInt(port));
-			}
-		}catch(Exception e){
-			LogMe.logger.error("Exception in initializeSocket",e);
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private void connectToWorkflow(){
-		try {			
-			if (strUsername == null || strPwd == null) {
-				throw new Exception("Username or Password not specified.");
-			}
-			LogMe.logger.info("cabinetName= " + strCabName + " username-" + strUsername);
-			String connectInputXML = GenerateXml.getConnectInputXML(strCabName, strUsername, strPwd);
-			LogMe.logger.info("Connect Input XML:\n" + modifyInputXML(connectInputXML));
-			String connectOutputXML = ExecuteXML.executeXML(connectInputXML);
-			LogMe.logger.info(connectOutputXML);
-			String mainCode = getTagValue(connectOutputXML, "MainCode");
-			mainCode = mainCode.trim();
-			LogMe.logger.info("main code: " + mainCode);
-			if (!mainCode.equalsIgnoreCase("0")) {
-				LogMe.logger.info("Error during connection with workflow.");	
-			}
-			sessionId = getTagValue(connectOutputXML, "SessionId").trim();
-			LogMe.logger.info("session id: " + sessionId);
-			if(null == sessionId || sessionId.equalsIgnoreCase("") || sessionId.equalsIgnoreCase("null")) {
-//				errorFlag = true;
-				LogMe.logger.info("Unable to login, some problem occurred");
-			}
-			LogMe.logger.info("Successfully logged in into workflow");	
-		} catch (Exception e) {
-//			errorFlag = true;
-			LogMe.logger.info("exception in connectToWorkflow: ",e);;
-		}
-	}
-	
-	
-	private String getTagValue(String xml, String tag) throws ParserConfigurationException, SAXException, IOException {
-		Document doc = getDocument(xml);
-		NodeList nodeList = doc.getElementsByTagName(tag);
+	public int insertExcelDataIntoDB(String excelFilePath, String tableName) {
+		LogMe.logger.info( "~~~~~~~~~~~~~~~~~~ inside insertExcelDataIntoDB ~~~~~~~~~~~~~~~~~~~~~~~~~");
+		int insertCount =0;
+		LogMe.logger.info("insertExcelDataIntoDB filePath: " + excelFilePath);
 
-		int length = nodeList.getLength();
 
-		if (length > 0) {
-			Node node = nodeList.item(0);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				NodeList childNodes = node.getChildNodes();
-				String value = "";
-				int count = childNodes.getLength();
-				for (int i = 0; i < count; i++) {
-					Node item = childNodes.item(i);
-					if (item.getNodeType() == Node.TEXT_NODE) {
-						value += item.getNodeValue();
-					}
+		try (FileInputStream fis = new FileInputStream(new File(excelFilePath));
+				XSSFWorkbook workbook = new XSSFWorkbook(fis)
+						// Connection con = DriverManager.getConnection(dbUrl, username, password);
+						// PreparedStatement pstmt = con.prepareStatement(insertQuery)
+				) {
+
+			XSSFSheet sheet = workbook.getSheetAt(0);
+			DataFormatter formatter = new DataFormatter();
+
+			// Skip header row
+			for (int rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++) {
+
+				Row row = sheet.getRow(rowNum);
+				if (row == null) {
+					continue;
 				}
-				return value;
-			} else if (node.getNodeType() == Node.TEXT_NODE) {
-				return node.getNodeValue();
+
+				String workitem = formatter.formatCellValue(row.getCell(0));
+				LogMe.logger.info("workitem No: " + workitem);
+
+				String threadName = formatter.formatCellValue(row.getCell(1));
+				LogMe.logger.info("Thread Name: " + threadName);
+
+				String status = formatter.formatCellValue(row.getCell(2));
+				LogMe.logger.info("Status: " + status);
+				
+				
+				if(!"".equalsIgnoreCase(workitem)) {
+					String outputXML = insertData("WORKITEM,THREAD_NAME,STATUS,CREATEDDATETIME",
+							"'"+workitem+"','"+threadName+"','"+status+"' , SYSDATE", tableName);
+					LogMe.logger.info("insertExcelDataIntoDB outputXML: " + outputXML);
+					insertCount++;
+				}
+
 			}
 
+			LogMe.logger.info("Data inserted successfully.");
+
+		} catch (Exception e) {
+			LogMe.logger.error("Exception insertExcelDataIntoDB : " + e);
 		}
-		return "";
-	}
-	
-	private Document getDocument(String xml) throws ParserConfigurationException, SAXException, IOException {
-		DocumentBuilderFactory dbf= DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		Document doc = db.parse(new InputSource(new StringReader(xml)));
-		return doc;
+		return insertCount;
 	}
 
-	private String modifyInputXML(String sInputXML)
-	{
-		return sInputXML.replace(sInputXML.substring(sInputXML.indexOf("<Password>")+10, sInputXML.indexOf("</Password>")),"*********");		
-	}
+		public String insertData(String colName, String values, String tableName) {
+			LogMe.logger.info("Inside insertData method");
+			LogMe.logger.info("colName to be insert======" + colName);
+			LogMe.logger.info("value to be insert==" + values);
+			StringBuilder inputxml = new StringBuilder();
+			inputxml = inputxml.append("<?xmlversion=\"1.0\"?>");
+			inputxml = inputxml.append("<APInsert>");
+			inputxml = inputxml.append("<Option>APInsert</Option>");
+			inputxml = inputxml.append("<ProcessDefId>").append(strUsername).append("</ProcessDefId>");
+			inputxml = inputxml.append("<Status>true</Status>");
+			inputxml = inputxml.append("<SessionId>").append(strSessionId).append("</SessionId>");
+			inputxml = inputxml.append("<EngineName>").append(strCabName).append("</EngineName>");
+			inputxml = inputxml.append("<TableName>").append(tableName).append("</TableName>");
+			inputxml = inputxml.append("<ColName>"+colName+"</ColName>");
+			inputxml = inputxml.append("<Values>"+values+"</Values>");
+			inputxml = inputxml.append("</APInsert>");
+			LogMe.logger.info("inputxml==" + inputxml);
+			XMLParser parsergetlist = null;
+			String strCompOutputXml = null;
+			try {
+				strCompOutputXml = executeCallBroker(inputxml.toString());
+				parsergetlist = new XMLParser(strCompOutputXml);
+				if (parsergetlist.getValueOf("MainCode").equals("0")) {
+					return (parsergetlist.getValueOf("MainCode"));
+				} else {
+					return "";
+				}
+			} catch (Exception e) {
+				LogMe.logger.info("[Error]Error in insert the data" + e);
+				return "";
+			} finally {
+				if (strCompOutputXml != null) {
+					strCompOutputXml = null;
+				}
+				if (parsergetlist != null) {
+					parsergetlist = null;
+				}
+				if (inputxml != null) {
+					inputxml = null;
+				}
+			}
+		}
+
+		public void moveToHistoryTable() {
+
+		}
+
+
+		public int executeAPProcedure(String procName, String inValues, int noofCols) {
+			String strOutputXmlFI = null;
+			StringBuilder strBuffFI = new StringBuilder();
+
+			strBuffFI = strBuffFI.append("<?xmlversion=\"1.0\"?>");
+			strBuffFI = strBuffFI.append("<APProcedure_Input>");
+			strBuffFI = strBuffFI.append("<Option>APProcedureExtd</Option>");
+			strBuffFI = strBuffFI.append("<EngineName>").append(strCabName).append("</EngineName>");
+			strBuffFI = strBuffFI.append("<SessionId>").append(strSessionId).append("</SessionId>");
+			strBuffFI = strBuffFI.append("<ProcName>").append(procName).append("</ProcName>");
+			strBuffFI = strBuffFI.append("<Params>").append(inValues).append("</Params>");
+			strBuffFI = strBuffFI.append("<NoOfCols>").append(noofCols).append("</NoOfCols>");
+			strBuffFI = strBuffFI.append("</APProcedure_Input>");
+			LogMe.logger.info("strBuffFI==" + strBuffFI);
+			strOutputXmlFI = executeCallBroker(strBuffFI.toString());
+			LogMe.logger.info("executeAPProcedure strOutputXmlFI=" + strOutputXmlFI);
+			XMLParser xp = new XMLParser(strOutputXmlFI);
+
+			return Integer.parseInt(xp.getValueOf("MainCode"));
+		}
+
+		private void initializeSocket() {
+			try{
+				String sQuery1 = "SELECT (SELECT VALUE FROM BPM_SERVICE_CONFIG WHERE KEY = 'SOCKETIP') IP,"
+						+ "(SELECT VALUE FROM BPM_SERVICE_CONFIG WHERE KEY = 'SOCKETPORT') PORT FROM DUAL";
+				String outputXml = ExecuteXML.executeXML(
+						GenerateXml.APSelectWithColumnNames(strCabName,sQuery1,strSessionId));
+				LogMe.logger.info("outputXml="+outputXml);
+				XMLParser xmlDataParser1 = new XMLParser(outputXml);
+				int mainCode = Integer.parseInt(xmlDataParser1.getValueOf("MainCode"));
+				if (mainCode == 0) {
+					String ip = xmlDataParser1.getValueOf("IP");
+					String port = xmlDataParser1.getValueOf("PORT");
+					socket = ConnectSocket.getReference(strIP, Integer.parseInt(port));
+				}
+			}catch(Exception e){
+				LogMe.logger.error("Exception in initializeSocket",e);
+			}
+		}
+
+		@SuppressWarnings("unused")
+		private void connectToWorkflow(){
+			try {			
+				if (strUsername == null || strPwd == null) {
+					throw new Exception("Username or Password not specified.");
+				}
+				LogMe.logger.info("cabinetName= " + strCabName + " username-" + strUsername);
+				String connectInputXML = GenerateXml.getConnectInputXML(strCabName, strUsername, strPwd);
+				LogMe.logger.info("Connect Input XML:\n" + modifyInputXML(connectInputXML));
+				String connectOutputXML = ExecuteXML.executeXML(connectInputXML);
+				LogMe.logger.info(connectOutputXML);
+				String mainCode = getTagValue(connectOutputXML, "MainCode");
+				mainCode = mainCode.trim();
+				LogMe.logger.info("main code: " + mainCode);
+				if (!mainCode.equalsIgnoreCase("0")) {
+					LogMe.logger.info("Error during connection with workflow.");	
+				}
+				sessionId = getTagValue(connectOutputXML, "SessionId").trim();
+				LogMe.logger.info("session id: " + sessionId);
+				if(null == sessionId || sessionId.equalsIgnoreCase("") || sessionId.equalsIgnoreCase("null")) {
+					//				errorFlag = true;
+					LogMe.logger.info("Unable to login, some problem occurred");
+				}
+				LogMe.logger.info("Successfully logged in into workflow");	
+			} catch (Exception e) {
+				//			errorFlag = true;
+				LogMe.logger.info("exception in connectToWorkflow: ",e);;
+			}
+		}
+
+
+		private String getTagValue(String xml, String tag) throws ParserConfigurationException, SAXException, IOException {
+			Document doc = getDocument(xml);
+			NodeList nodeList = doc.getElementsByTagName(tag);
+
+			int length = nodeList.getLength();
+
+			if (length > 0) {
+				Node node = nodeList.item(0);
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					NodeList childNodes = node.getChildNodes();
+					String value = "";
+					int count = childNodes.getLength();
+					for (int i = 0; i < count; i++) {
+						Node item = childNodes.item(i);
+						if (item.getNodeType() == Node.TEXT_NODE) {
+							value += item.getNodeValue();
+						}
+					}
+					return value;
+				} else if (node.getNodeType() == Node.TEXT_NODE) {
+					return node.getNodeValue();
+				}
+
+			}
+			return "";
+		}
+
+		private Document getDocument(String xml) throws ParserConfigurationException, SAXException, IOException {
+			DocumentBuilderFactory dbf= DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			Document doc = db.parse(new InputSource(new StringReader(xml)));
+			return doc;
+		}
+
+		private String modifyInputXML(String sInputXML)
+		{
+			return sInputXML.replace(sInputXML.substring(sInputXML.indexOf("<Password>")+10, sInputXML.indexOf("</Password>")),"*********");		
+		}
 }
