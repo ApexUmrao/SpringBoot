@@ -37,9 +37,8 @@ public class DMSDocExtraction {
 
 
 	public static void main(String[] args) {
-		System.out.println("~~~~~~~~~~~~~~~~~~###################*************#########################~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
 		System.out.println("~~~~~~~~~~~~~~~~~~main Method Starts of DMSDocExtraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-		System.out.println("~~~~~~~~~~~~~~~~~~###################*************#########################~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 		LogMe.intitalizeLog();
 		
@@ -55,44 +54,44 @@ public class DMSDocExtraction {
 		LogMe.logger.info("~~~~~~~~~~~~~~~~~~ReadProperty Method Ends of DMSDocExtraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		if (strStatus.equalsIgnoreCase(comObj.NG_SUCCESS)) {
 			LogMe.logger.info("~~~~~~~~~~~~~~~~~~ReadProperty Method Success of DMSDocExtraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-//			if (comObj.conCabinet()) {
-				try {
-//					String tableName="BPM_DOC_DOWNLOAD"; 
-//					int insertCount = comObj.insertExcelDataIntoDB(comObj.strXLSXFilePath,tableName);
-//					LogMe.logger.info("Total row inserted : " + insertCount);
-
-					int threadCount = Integer.parseInt(comObj.strThreadCount);
-					ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-					List<Future<List<DocumentDetails>>> futures = new ArrayList<Future<List<DocumentDetails>>>();
-					try {
-						for(int i=0; i<threadCount; i++) {
-							Future<List<DocumentDetails>> f = executor.submit(new Service(comObj));
-							Thread.sleep(5000);
-							futures.add(f);
-						}
-					} catch (Exception e) {
-						LogMe.logger.error(e);
-					}finally {
-						List<DocumentDetails> listDocDetails = new ArrayList<>();
-
-						if(executor != null) {
-							for (Future<List<DocumentDetails>> future : futures) {
-								List<DocumentDetails> result =future.get();//blocks until task completes
-								listDocDetails.addAll(result);
-							}
-							executor.shutdown();
-							LogMe.logger.info("All task completed, now main thread continues");
-						}
-						CreateExcelFile.createExcelFile(listDocDetails, comObj.strExcelFilePath);
-//						CreateExcelFile.createExcelFileFromDB(comObj,comObj.strExcelFilePath);
-//						comObj.executeAPProcedure("DMS_REVAMP_HIST_MOVEMENT", "'DMS_REVAMP'", 1);
-						comObj.disConCabinet();
-					}
-				}catch (Exception e) {
-					LogMe.logger.error(e);
+			try {
+				if (comObj.uploadXlSX.equalsIgnoreCase("Y")) {
+					String tableName="BPM_DOC_DOWNLOAD"; 
+					int insertCount = comObj.insertExcelDataIntoDB(comObj.strXLSXFilePath,tableName);
+					LogMe.logger.info("Total row inserted : " + insertCount);
 				}
+
+				int threadCount = Integer.parseInt(comObj.strThreadCount);
+				ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+				List<Future<List<DocumentDetails>>> futures = new ArrayList<Future<List<DocumentDetails>>>();
+				try {
+					for(int i=0; i<threadCount; i++) {
+						Future<List<DocumentDetails>> f = executor.submit(new Service(comObj));
+						Thread.sleep(5000);
+						futures.add(f);
+					}
+				} catch (Exception e) {
+					LogMe.logger.error(e);
+				}finally {
+					List<DocumentDetails> listDocDetails = new ArrayList<>();
+
+					if(executor != null) {
+						for (Future<List<DocumentDetails>> future : futures) {
+							List<DocumentDetails> result =future.get();//blocks until task completes
+							listDocDetails.addAll(result);
+						}
+						executor.shutdown();
+						LogMe.logger.info("All task completed, now main thread continues");
+					}
+					CreateExcelFile.createExcelFile(listDocDetails, comObj.strExcelFilePath);
+					//						CreateExcelFile.createExcelFileFromDB(comObj,comObj.strExcelFilePath);
+					//						comObj.executeAPProcedure("DMS_REVAMP_HIST_MOVEMENT", "'DMS_REVAMP'", 1);
+//					comObj.disConCabinet();
+				}
+			}catch (Exception e) {
+				LogMe.logger.error(e);
 			}
-//		}
+		}
 		LogMe.logger.info("~~~~~~~~~~~~~~~~~~###################*************#########################~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		LogMe.logger.info("~~~~~~~~~~~~~~~~~~main Method Ends of DMSDocExtraction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		LogMe.logger.info("~~~~~~~~~~~~~~~~~~###################*************#########################~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");

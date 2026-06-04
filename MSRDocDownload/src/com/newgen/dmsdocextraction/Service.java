@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
 import com.newgen.beans.DocumentDetails;
 import com.newgen.connection.XMLParser;
 import com.newgen.log.LogMe;
+import com.newgen.util.APCallCreateXML;
 import com.newgen.util.CommonMethods;
 import com.newgen.util.ExecuteXML;
 import com.newgen.util.GenerateXml;
@@ -43,7 +44,9 @@ import Jdts.DataObject.JPDBString;
 public class Service implements Callable<List<DocumentDetails>> {
 
 	CommonMethods comObj = null;
-
+	boolean moveToHistoryFlag = false;
+	String finalStatus = "D";
+	
 	public Service(CommonMethods obj) {
 		comObj=obj;
 	}
@@ -60,24 +63,27 @@ public class Service implements Callable<List<DocumentDetails>> {
 
 				String sQuery = "SELECT WORKITEM_NUMBER FROM BPM_DOC_DOWNLOAD WHERE STATUS ='N' ORDER BY CREATEDDATETIME ";
 
-				String outputqryXML = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,sQuery,comObj.sessionId));
+				String outputqryXML = ExecuteXML.executeXML(GenerateXml.
+						APSelectWithColumnNames(comObj.strCabName,sQuery,comObj.sessionId));
 				XMLParser xpareser = new XMLParser(outputqryXML);
 				String outputString = xpareser.getValueOf("APSelectWithColumnNames_Output");	
 				LogMe.logger.info("[executeOnWI]" + "executeOnWI outputString : " + outputString);
+				int totalRecords =  Integer.parseInt(xpareser.getValueOf("TotalRetrieved"));
 
-				if (xpareser.getValueOf("TotalRetrieved").equals("1")) {
+				if (totalRecords > 0) {
 					String wiName = xpareser.getValueOf("WORKITEM_NUMBER");
 					LogMe.logger.info("wiName = " + wiName );
 
 					try{
 						String updateQuery = "";
 						int mainCode = -1;
-						String status = "D";
+						String status = "P";
 						LogMe.logger.info("[updateCalls]" + " comObj.sessionId --> " +comObj.sessionId + " || " + comObj.strCabName);
 
 						updateQuery = GenerateXml.APUpdate("BPM_DOC_DOWNLOAD", "STATUS, THREAD_NAME", 
 								"'"+status+"','"+Thread.currentThread().getName()+"'", "WORKITEM_NUMBER='"+wiName+"'", 
 								comObj.sessionId,comObj.strCabName);
+						
 						LogMe.logger.info("[updateCalls]" + " Update Query " +updateQuery);
 						XMLParser xmlDataParser1 = new XMLParser(updateQuery);
 						mainCode = Integer.parseInt(xmlDataParser1.getValueOf("MainCode"));
@@ -88,31 +94,28 @@ public class Service implements Callable<List<DocumentDetails>> {
 						LogMe.logger.error("Exception Found"+e);
 					}
 
-//					String query= "SELECT ITEMINDEX, MSRREQID FROM USR_0_EXT_MSR WHERE CID = '" + strCIF + "'";
-//
-//					String outputXML = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,query,comObj.sessionId));
-//
-//					XMLParser xp = new XMLParser(outputXML);
-//					int start = xp.getStartIndex("Records", 0, 0);
-//					int deadEnd = xp.getEndIndex("Records", start, 0);
-//					int noOfFields = xp.getNoOfFields("Record", start,deadEnd);
-//					int end = 0;
-//					for(int i = 0; i < noOfFields; ++i){
-//						start = xp.getStartIndex("Record", end, 0);
-//						end = xp.getEndIndex("Record", start, 0);
-//						String itemIndex = xp.getValueOf("ITEMINDEX", start, end);
-//						String workitemNo = xp.getValueOf("MSRREQID", start, end);
+					String schemaPrefix = comObj.environment.equalsIgnoreCase("PROD")
+					        ? comObj.cabinetTable + "."
+					        : "";
 
-
-						String strQuery = "SELECT d.DOCUMENTINDEX ,d.IMAGEINDEX, d.VOLUMEID, d.NOOFPAGES, "
-								+ "d.DOCUMENTSIZE, d.APPNAME, d.COMMNT, d.NAME , d.AUTHOR "
-								+ "FROM "+comObj.cabinetTable+".PDBDOCUMENT d  WHERE d.DOCUMENTINDEX IN "
-								+ "(SELECT pd.DOCUMENTINDEX FROM "+comObj.cabinetTable+".PDBDOCUMENTCONTENT pd where pd.PARENTFOLDERINDEX IN "
-								+ "(SELECT pdb.FOLDERINDEX FROM "+comObj.cabinetTable+".PDBFOLDER pdb where pdb.NAME = '" + wiName + "')) "
-								+ " ORDER BY d.CREATEDDATETIME DESC";
-
-
-						String xmlqryExtractedfields = ExecuteXML.executeXML(GenerateXml.APSelectWithColumnNames(comObj.strCabName,strQuery,comObj.sessionId));
+					String strQuery =
+					        "SELECT d.DOCUMENTINDEX, d.IMAGEINDEX, d.VOLUMEID, d.NOOFPAGES, " +
+					        "d.DOCUMENTSIZE, d.APPNAME, d.COMMNT, d.NAME, d.AUTHOR " +
+					        "FROM " + schemaPrefix + "PDBDOCUMENT d " +
+					        "WHERE d.DOCUMENTINDEX IN ( " +
+					        "    SELECT pd.DOCUMENTINDEX " +
+					        "    FROM " + schemaPrefix + "PDBDOCUMENTCONTENT pd " +
+					        "    WHERE pd.PARENTFOLDERINDEX IN ( " +
+					        "        SELECT pdb.FOLDERINDEX " +
+					        "        FROM " + schemaPrefix + "PDBFOLDER pdb " +
+					        "        WHERE pdb.NAME = '" + wiName + "'" +
+					        "    ) " +
+					        ") " +
+					        "ORDER BY d.CREATEDDATETIME DESC";
+					
+					
+						String xmlqryExtractedfields = ExecuteXML.executeXML(GenerateXml.
+								APSelectWithColumnNames(comObj.strCabName,strQuery,comObj.sessionId));
 						XMLParser parsergetlist = new XMLParser(xmlqryExtractedfields);
 						LogMe.logger.info("[executeOnWI]" + "executeOnWI sQuery : " + strQuery);
 
@@ -120,6 +123,11 @@ public class Service implements Callable<List<DocumentDetails>> {
 							//Added by Shivanshu
 							String fetchedDocuments =  parsergetlist.getValueOf("APSelectWithColumnNames_Output");	
 							downloadDocuments(fetchedDocuments , wiName);
+							if (moveToHistoryFlag) {
+							 String	outputXML = APCallCreateXML.APProcedure(comObj.sessionId,
+										"BPM_DOC_DOWNLOAD_MOVE_HISTORY",
+										"'" + wiName + "','" + finalStatus + "'", 2);
+							}
 						}catch (Exception e) {
 							LogMe.logger.info("Exception Found"+e);
 						}
@@ -197,6 +205,9 @@ public class Service implements Callable<List<DocumentDetails>> {
 								Integer.parseInt(IMAGEINDEX),
 								null,folderPath+"/"+docName
 								+"."+appname,oSiteName);
+						
+						moveToHistoryFlag = true;
+						
 					}catch (JPISException e) {
 						LogMe.logger.error("[downloadDocuments]" +" Exception "+e);
 					}

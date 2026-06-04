@@ -108,6 +108,8 @@ public class CommonMethods {
 	public String strVolumeID = "";
 	public String sessionId = "";
 	public String cabinetTable = "";
+	public String environment= "";
+	public String uploadXlSX = "";
 
 	public String ReadProperty() {
 		try {
@@ -153,6 +155,21 @@ public class CommonMethods {
 				}
 				
 				//Added by Shivanshu
+				if ((prop.getProperty("UploadXLSX") != null) && (!prop.getProperty("UploadXLSX").equals(""))) {
+					uploadXlSX = prop.getProperty("UploadXLSX").trim();
+				} else {
+					//System.out.println("\n[ERROR] Login Username not specified in the configuration file.");
+					LogMe.logger.error("\n[ERROR] UploadXLSX not specified in the Settings.ini file.");
+					return NG_FAIL;
+				}
+				
+				if ((prop.getProperty("Environment") != null) && (!prop.getProperty("Environment").equals(""))) {
+					environment = prop.getProperty("Environment").trim();
+				} else {
+					LogMe.logger.error("\n[ERROR] Environment not specified in the Settings.ini file.");
+					return NG_FAIL;
+				}
+				
 				if ((prop.getProperty("CabinetTable") != null) && (!prop.getProperty("CabinetTable").equals(""))) {
 					cabinetTable = prop.getProperty("CabinetTable").trim();
 				} else {
@@ -282,13 +299,7 @@ public class CommonMethods {
 					LogMe.logger.error("\n[ERROR] Thread_Count not specified in the Settings.ini file.");
 					return NG_FAIL;
 				}
-				if ((prop.getProperty("DATE_CRITERIA") != null) && (!prop.getProperty("DATE_CRITERIA").equals(""))) {
-					strDATECRITERIA = prop.getProperty("DATE_CRITERIA").trim();
-				} else {
-					System.out.println("\n[ERROR] DATE_CRITERIA not specified in the configuration file.");
-					LogMe.logger.error("\n[ERROR] DATE_CRITERIA not specified in the Settings.ini file.");
-					return NG_FAIL;
-				}
+				
 				LogMe.logger.info("Ends Reading INI File ..........");
 			} else {
 				LogMe.logger.info("No Property file exist in " + strPropertyPath);
@@ -948,44 +959,6 @@ public class CommonMethods {
 		return strOutputXML;
 
 	}
-
-
-	public int insertExcelIntoDB(String filePath, String tableName) {
-		LogMe.logger.info( "~~~~~~~~~~~~~~~~~~ inside insertExcelIntoDB ~~~~~~~~~~~~~~~~~~~~~~~~~");
-		int insertCount =0;
-		LogMe.logger.info("insertExcelIntoDB filePath: " + filePath);
-
-		try ( FileInputStream file = new FileInputStream(new File(filePath));  XSSFWorkbook workbook = new XSSFWorkbook(file)) {
-			LogMe.logger.info("inside insertExcelIntoDB workbook: " + workbook.getSheetAt(0));
-
-			Sheet sheet = workbook.getSheetAt(0); // Read the first sheet
-			
-			LogMe.logger.info("inside insertExcelIntoDB sheet " + sheet.getSheetName());
-
-			for (int i=1; i<=sheet.getLastRowNum(); i++) { //skip header row
-				Row row = sheet.getRow(i);
-				LogMe.logger.info("insertExcelIntoDB row: " + row.getRowNum());
-
-				Cell cell = row.getCell(1, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-				String custCID = getCellValueAsString(cell);
-				LogMe.logger.info("insertExcelIntoDB custCID: " + custCID);
-
-//				cell = row.getCell(2, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-//				String custCategory = getCellValueAsString(cell);
-//				LogMe.logger.info("insertExcelIntoDB custCategory: " +custCategory);
-
-				if(!"".equalsIgnoreCase(custCID)) {
-					String outputXML = GenerateXml.apInsertInputXml(strCabName,sessionId,"DATE_TIME,CUSTOMER_CID,STATUS", "SYSDATE,'"+custCID+"','N'", tableName);
-					LogMe.logger.info("insertExcelIntoDB outputXML: " + outputXML);
-					insertCount++;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			LogMe.logger.info("Exception insertExcelIntoDB : " + e);
-		}
-		return insertCount;
-	}
 	
 	public int insertExcelDataIntoDB(String excelFilePath, String tableName) {
 		LogMe.logger.info( "~~~~~~~~~~~~~~~~~~ inside insertExcelDataIntoDB ~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -1021,8 +994,9 @@ public class CommonMethods {
 				
 				
 				if(!"".equalsIgnoreCase(workitem)) {
-					String outputXML = insertData("WORKITEM,THREAD_NAME,STATUS,CREATEDDATETIME",
-							"'"+workitem+"','"+threadName+"','"+status+"' , SYSDATE", tableName);
+					String outputXML = ExecuteXML.executeXML(GenerateXml.apInsertInputXml(strCabName,sessionId,tableName,
+							"WORKITEM_NUMBER,THREAD_NAME,STATUS,CREATEDDATETIME",
+							"'"+workitem+"','"+threadName+"','"+status+"' , SYSDATE"));
 					LogMe.logger.info("insertExcelDataIntoDB outputXML: " + outputXML);
 					insertCount++;
 				}
@@ -1036,53 +1010,6 @@ public class CommonMethods {
 		}
 		return insertCount;
 	}
-
-		public String insertData(String colName, String values, String tableName) {
-			LogMe.logger.info("Inside insertData method");
-			LogMe.logger.info("colName to be insert======" + colName);
-			LogMe.logger.info("value to be insert==" + values);
-			StringBuilder inputxml = new StringBuilder();
-			inputxml = inputxml.append("<?xmlversion=\"1.0\"?>");
-			inputxml = inputxml.append("<APInsert>");
-			inputxml = inputxml.append("<Option>APInsert</Option>");
-			inputxml = inputxml.append("<ProcessDefId>").append(strUsername).append("</ProcessDefId>");
-			inputxml = inputxml.append("<Status>true</Status>");
-			inputxml = inputxml.append("<SessionId>").append(strSessionId).append("</SessionId>");
-			inputxml = inputxml.append("<EngineName>").append(strCabName).append("</EngineName>");
-			inputxml = inputxml.append("<TableName>").append(tableName).append("</TableName>");
-			inputxml = inputxml.append("<ColName>"+colName+"</ColName>");
-			inputxml = inputxml.append("<Values>"+values+"</Values>");
-			inputxml = inputxml.append("</APInsert>");
-			LogMe.logger.info("inputxml==" + inputxml);
-			XMLParser parsergetlist = null;
-			String strCompOutputXml = null;
-			try {
-				strCompOutputXml = executeCallBroker(inputxml.toString());
-				parsergetlist = new XMLParser(strCompOutputXml);
-				if (parsergetlist.getValueOf("MainCode").equals("0")) {
-					return (parsergetlist.getValueOf("MainCode"));
-				} else {
-					return "";
-				}
-			} catch (Exception e) {
-				LogMe.logger.info("[Error]Error in insert the data" + e);
-				return "";
-			} finally {
-				if (strCompOutputXml != null) {
-					strCompOutputXml = null;
-				}
-				if (parsergetlist != null) {
-					parsergetlist = null;
-				}
-				if (inputxml != null) {
-					inputxml = null;
-				}
-			}
-		}
-
-		public void moveToHistoryTable() {
-
-		}
 
 
 		public int executeAPProcedure(String procName, String inValues, int noofCols) {
