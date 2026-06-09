@@ -2464,7 +2464,7 @@ function NG_Intl_Commodity_Fin_Contract_Indv()
                 for (var i = 0; i < Count; i++) {
 					
 								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
-					if (getValueFromTableCell("table117", i, 0) == 'MR')
+					if (getValueFromTableCell("table117", i, 0) == 'PL')
 			         {
 							{
 						       attrbList += "&<Total_Requested_Amount>&" + getValueFromColumnName("table117",i,"Total Requested Amount");
@@ -2537,7 +2537,7 @@ function NG_Intl_Commodity_Murabaha_FinContract_VarInst_Indv()
                 for (var i = 0; i < Count; i++) {
 					
 								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
-					if (getValueFromTableCell("table117", i, 0) == 'MR')
+					if (getValueFromTableCell("table117", i, 0) == 'PL')
 			         {
 							{
 						       attrbList += "&<Total_Requested_Amount>&" + getValueFromColumnName("table117",i,"Total Requested Amount");
@@ -2606,41 +2606,45 @@ function NG_Intl_Commodity_Murabaha_Agency_Indv()
 
 function NG_Car_Murabaha_Framework_LetterRecom()
 {
-	var attrbList="";
-	var Product_Type = getValue('Product_Type');
-	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
-	var Request_Type =  getValue('Request_Type');
-	//var Application_Date =  getValue('CreatedDateTime');//Need to check
-	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
-	
-	var year3 = new Date().getFullYear();
-	var month3 =  new Date().getMonth();
-	var date3 = new Date().getDate();
-	month3 = parseInt(month3) + parseInt("1");
-	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
-	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check
-	
-	
-	 var Count = getGridRowCount("table117");
-                for (var i = 0; i < Count; i++) {
-					
-								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
-					if (getValueFromTableCell("table117", i, 0) == 'MR')
-			         {
-							{
-				
-							attrbList += "&<Car_Model>&" + getValueFromColumnName("table117",i,"Car Model");//Car Brand
-							attrbList += "&<Car_Brand>&" + getValueFromColumnName("table117",i,"Car Brand");
-							attrbList += "&<Year_of_manufacture>&" + getValueFromColumnName("table117",i,"Year of manufacture");
-							attrbList += "&<Vehicle_Price>&" + getValueFromColumnName("table117",i,"Vehicle Price");
-							attrbList += "&<Chassis_No>&" + getValueFromColumnName("table117",i,"Chassis No");
-							attrbList += "&<Car_plate_number>&" + getValueFromColumnName("table117",i,"Car plate number");
-							attrbList += "&<Type_of_Vehicle>&" + getValueFromColumnName("table117",i,"Type of vehicle");
-							}
-					 }
-			}
+    var attrbList = "";
 
-                return attrbList;
+    var Product_Type = getValue('Product_Type');
+    var Sub_Product_Type = getValue('Sub_Product_Type');
+    var Request_Type = getValue('Request_Type');
+
+    // Application Date
+    attrbList += "&<Application_Date>&" + getValue('CreatedDateTime');
+
+    // Printed Date
+    var today = new Date();
+    var current_date_time3 =
+        today.getDate() + "/" +
+        (today.getMonth() + 1) + "/" +
+        today.getFullYear();
+
+    attrbList += "&<Printed_Date>&" + current_date_time3;
+
+    // Grid Loop
+    var Count = getGridRowCount("table117");
+
+    for (var i = 0; i < Count; i++)
+    {
+        var prodtype = getValueFromTableCell("table117", i, 0);
+
+        // BOTH AL and MR
+        if (prodtype == 'AL')
+        {
+            attrbList += "&<Car_Model>&" + getValueFromColumnName("table117", i, "Car Model");
+            attrbList += "&<Car_Brand>&" + getValueFromColumnName("table117", i, "Car Brand");
+            attrbList += "&<Year_of_manufacture>&" + getValueFromColumnName("table117", i, "Year of manufacture");
+            attrbList += "&<Vehicle_Price>&" + getValueFromColumnName("table117", i, "Vehicle Price");
+            attrbList += "&<Chassis_No>&" + getValueFromColumnName("table117", i, "Chassis No");
+            attrbList += "&<Car_plate_number>&" + getValueFromColumnName("table117", i, "Car plate number");
+            attrbList += "&<Type_of_Vehicle>&" + getValueFromColumnName("table117", i, "Type of vehicle");
+        }
+    }
+
+    return attrbList;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2663,24 +2667,421 @@ function NG_Car_Murabaha_Framework_CarPurchaseReq()
 	
 	
 	 var Count = getGridRowCount("table117");
-                for (var i = 0; i < Count; i++) {
-					
-								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
-					if (getValueFromTableCell("table117", i, 0) == 'MR')
-			         {
-							{
-				
-							attrbList += "&<Car_Model>&" + getValueFromColumnName("table117",i,"Car Model");//Car Brand
-							attrbList += "&<Car_Brand>&" + getValueFromColumnName("table117",i,"Car Brand");
-							attrbList += "&<Year_of_manufacture>&" + getValueFromColumnName("table117",i,"Year of manufacture");
-							attrbList += "&<Vehicle_Price>&" + getValueFromColumnName("table117",i,"Vehicle Price");
-							attrbList += "&<Chassis_No>&" + getValueFromColumnName("table117",i,"Chassis No");
-							attrbList += "&<Car_plate_number>&" + getValueFromColumnName("table117",i,"Car plate number");
-							attrbList += "&<Type_of_Vehicle>&" + getValueFromColumnName("table117",i,"Type of vehicle");
-							}
-					 }
-			}
+		for (var i = 0; i < Count; i++)
+         {
+             var prodtype = getValueFromTableCell("table117", i, 0);
+	     
+             // BOTH AL and MR
+             if (prodtype == 'AL')
+             {
+                 attrbList += "&<Car_Model>&" + getValueFromColumnName("table117", i, "Car Model");
+                 attrbList += "&<Car_Brand>&" + getValueFromColumnName("table117", i, "Car Brand");
+                 attrbList += "&<Year_of_manufacture>&" + getValueFromColumnName("table117", i, "Year of manufacture");
+                 attrbList += "&<Vehicle_Price>&" + getValueFromColumnName("table117", i, "Vehicle Price");
+                 attrbList += "&<Chassis_No>&" + getValueFromColumnName("table117", i, "Chassis No");
+                 attrbList += "&<Car_plate_number>&" + getValueFromColumnName("table117", i, "Car plate number");
+                 attrbList += "&<Type_of_Vehicle>&" + getValueFromColumnName("table117", i, "Type of vehicle");
+             }
+         }
+
 
                 return attrbList;
 }
 	
+	
+
+
+
+//--------------------------------------------------------------------
+function ack_Of_Deposit_Or_Certificate_Against_Debt_Secured()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	//var Application_Date =  getValue('CreatedDateTime');//Need to check
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check	
+	attrbList += "&<Outstanding>&" + getValue('Outstanding');
+	//attrbList += "&<Balance>&" + getValueFromColumnName("table142",i,"Balance");
+	attrbList += "&<Balance>&" + getValue('Balance');
+	if(Applicant_Nationality == "EG")
+						{
+							attrbList += "&<Passport_Number>&" + getValue('Applicant_Passport_Number');
+							
+						}
+                        else{
+							attrbList += "&<Passport_Number>&" +   getValue('Applicant_Passport_Number');
+						}
+						
+	attrbList += "&<Branch_Name>&" +getValue('Branch_Name');
+	 attrbList +=  "&<Collateral_CIF>&" + getValue('Collateral_CIF');  
+	 attrbList +=  "&<Collateral_Reference>&" + getValue('CollRefNo');  
+		 	
+	var Count = getGridRowCount("table108");
+                for (var i = 0; i < Count; i++) {
+					
+								
+					if (getValueFromTableCell("table108", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Address_Line:House_Number/Flat_no.>&" + getValueFromColumnName("table108",i,"Address Line 1: House number/Flat no.");
+						       //attrbList += "&<City>&" + getValueFromColumnName("table108",i,"City");//No. of Years at  Address
+						 
+						
+							}
+				}
+				
+				
+				var Count = getGridRowCount("table120");
+                for (var i = 0; i < Count; i++) {
+					
+								
+					if (getValueFromTableCell("table120", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Outstanding>&" + getValueFromColumnName("table120",i,"Outstanding");
+						 
+						
+							}
+				}
+				
+				
+				var Count = getGridRowCount("table142");
+                for (var i = 0; i < Count; i++) {
+					
+								
+					if (getValueFromTableCell("table142", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Balance>&" + getValueFromColumnName("table142",i,"Balance");
+						 
+						
+							}
+				}
+
+					return attrbList;
+}
+
+
+
+//--------------------------------------------------------------------
+function murabaha_Car_Finance_Contract_Various_Terms()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	//var Application_Date =  getValue('CreatedDateTime');//Need to check
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check	
+	attrbList += "&<Finance_Account_Number>&" + getValue('CustomerLoanAccountNumber');
+			 	
+	var Count = getGridRowCount("table108");
+                for (var i = 0; i < Count; i++) {					
+								
+					if (getValueFromTableCell("table108", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Address_Line:House_Number/Flat_no.>&" + getValueFromColumnName("table108",i,"Address Line 1: House number/Flat no.");
+						       attrbList += "&<City>&" + getValueFromColumnName("table108",i,"City");					 
+						
+							}
+				}				
+				
+				var Count = getGridRowCount("table120");
+                for (var i = 0; i < Count; i++) {
+					
+								
+					if (getValueFromTableCell("table120", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Outstanding>&" + getValueFromColumnName("table120",i,"Outstanding");					 
+						
+							}
+				}
+								
+				var Count = getGridRowCount("table142");
+                for (var i = 0; i < Count; i++) {
+					
+								
+					if (getValueFromTableCell("table142", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Balance>&" + getValueFromColumnName("table142",i,"Balance");					 
+						
+							}
+				}
+				
+		        var Count = getGridRowCount("table117");
+		        for (var i = 0; i < Count; i++)
+                 {
+                     var prodtype = getValueFromTableCell("table117", i, 0);
+	             
+                     // BOTH AL and MR
+                     if (prodtype == 'AL')
+                     {
+                         attrbList += "&<Car_Model>&" + getValueFromColumnName("table117", i, "Car Model");
+                         attrbList += "&<Car_Brand>&" + getValueFromColumnName("table117", i, "Car Brand");
+                         attrbList += "&<Year_of_manufacture>&" + getValueFromColumnName("table117", i, "Year of manufacture");
+                         //attrbList += "&<Vehicle_Price>&" + getValueFromColumnName("table117", i, "Vehicle Price");
+                         attrbList += "&<Chassis_No>&" + getValueFromColumnName("table117", i, "Chassis No");
+                         attrbList += "&<Car_plate_number>&" + getValueFromColumnName("table117", i, "Car plate number");
+                         //attrbList += "&<Type_of_Vehicle>&" + getValueFromColumnName("table117", i, "Type of vehicle");
+                     }
+                 }
+				 
+				var Count = getGridRowCount("table117");
+                for (var i = 0; i < Count; i++) {
+					
+								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+					if (getValueFromTableCell("table117", i, 0) == 'AL')
+			         {
+						{
+								attrbList += "&<Total_Requested_Amount>&" + getValueFromColumnName("table117",i,"Total Requested Amount");
+								attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+								attrbList += "&<Tenor_Monthly>&" + getValueFromColumnName("table117",i,"Tenor Monthly");
+								attrbList += "&<Installment_Amount_Monthly>&" + getValueFromColumnName("table117",i,"Installment Amount Monthly");
+								attrbList += "&<Last_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"Last Installment date Monthly");
+								attrbList += "&<First_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"First Installment date Monthly");
+								attrbList += "&<Installment_Amount_Yearly>&" + getValueFromColumnName("table117",i,"First Installment Amount Yearly");
+								attrbList += "&<Tenor_Yearly>&" + getValueFromColumnName("table117",i,"Tenor Yearly");
+						}
+                     }
+
+				}
+				 
+					return attrbList;
+}
+
+
+
+
+//--------------------------------------------------------------------
+function murabaha_Car_Financing_Contract()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	//var Application_Date =  getValue('CreatedDateTime');//Need to check
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check	
+	attrbList += "&<Finance_Account_Number>&" + getValue('CustomerLoanAccountNumber');
+			 	
+	var Count = getGridRowCount("table108");
+                for (var i = 0; i < Count; i++) {					
+								
+					if (getValueFromTableCell("table108", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Address_Line:House_Number/Flat_no.>&" + getValueFromColumnName("table108",i,"Address Line 1: House number/Flat no.");
+						       attrbList += "&<City>&" + getValueFromColumnName("table108",i,"City");					 
+						
+							}
+				}
+				
+		        var Count = getGridRowCount("table117");
+		        for (var i = 0; i < Count; i++)
+                 {
+                     var prodtype = getValueFromTableCell("table117", i, 0);
+	             
+                     // BOTH AL and MR
+                     if (prodtype == 'AL')
+                     {
+                         attrbList += "&<Car_Model>&" + getValueFromColumnName("table117", i, "Car Model");
+                         attrbList += "&<Car_Brand>&" + getValueFromColumnName("table117", i, "Car Brand");
+                         attrbList += "&<Year_of_manufacture>&" + getValueFromColumnName("table117", i, "Year of manufacture");
+                         //attrbList += "&<Vehicle_Price>&" + getValueFromColumnName("table117", i, "Vehicle Price");
+                         attrbList += "&<Chassis_No>&" + getValueFromColumnName("table117", i, "Chassis No");
+                         attrbList += "&<Car_plate_number>&" + getValueFromColumnName("table117", i, "Car plate number");
+                         //attrbList += "&<Type_of_Vehicle>&" + getValueFromColumnName("table117", i, "Type of vehicle");
+                     }
+                 }
+				 
+				var Count = getGridRowCount("table117");
+                for (var i = 0; i < Count; i++) {
+					
+								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+					if (getValueFromTableCell("table117", i, 0) == 'AL')
+			         {
+						{
+								attrbList += "&<Total_Requested_Amount>&" + getValueFromColumnName("table117",i,"Total Requested Amount");
+								attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+								attrbList += "&<Tenor_Monthly>&" + getValueFromColumnName("table117",i,"Tenor Monthly");
+								attrbList += "&<Installment_Amount_Monthly>&" + getValueFromColumnName("table117",i,"Installment Amount Monthly");
+								attrbList += "&<Last_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"Last Installment date Monthly");
+								attrbList += "&<First_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"First Installment date Monthly");
+								
+						}
+                     }
+
+				}
+				 
+					return attrbList;
+}
+
+
+
+//--------------------------------------------------------------------
+function murabaha_Service_Contract_Various_Terms()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check	
+	attrbList += "&<Finance_Account_Number>&" + getValue('CustomerLoanAccountNumber');
+			 	
+	var Count = getGridRowCount("table108");
+                for (var i = 0; i < Count; i++) {					
+								
+					if (getValueFromTableCell("table108", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Address_Line:House_Number/Flat_no.>&" + getValueFromColumnName("table108",i,"Address Line 1: House number/Flat no.");
+						       attrbList += "&<City>&" + getValueFromColumnName("table108",i,"City");					 
+						
+							}
+				}
+				 
+				var Count = getGridRowCount("table117");
+                for (var i = 0; i < Count; i++) {
+					
+								//attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+					if (getValueFromTableCell("table117", i, 0) == 'AL')
+			         {
+						{
+								attrbList += "&<Total_Requested_Amount>&" + getValueFromColumnName("table117",i,"Total Requested Amount");
+								attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+								attrbList += "&<Tenor_Monthly>&" + getValueFromColumnName("table117",i,"Tenor Monthly");
+								attrbList += "&<Installment_Amount_Monthly>&" + getValueFromColumnName("table117",i,"Installment Amount Monthly");
+								attrbList += "&<Last_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"Last Installment date Monthly");
+								attrbList += "&<First_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"First Installment date Monthly");
+								attrbList += "&<Installment_Amount_Yearly>&" + getValueFromColumnName("table117",i,"First Installment Amount Yearly");
+								attrbList += "&<Tenor_Yearly>&" + getValueFromColumnName("table117",i,"Tenor Yearly");
+								
+						}
+                     }
+
+				}
+				 
+					return attrbList;
+}
+
+
+//--------------------------------------------------------------------
+function murabaha_Services_Contract()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check	
+	attrbList += "&<Finance_Account_Number>&" + getValue('CustomerLoanAccountNumber');
+			 	
+	var Count = getGridRowCount("table108");
+                for (var i = 0; i < Count; i++) {					
+								
+					if (getValueFromTableCell("table108", i, 0) == 'Applicant')
+							{
+						       attrbList += "&<Address_Line:House_Number/Flat_no.>&" + getValueFromColumnName("table108",i,"Address Line 1: House number/Flat no.");
+						       attrbList += "&<City>&" + getValueFromColumnName("table108",i,"City");					 
+						
+							}
+				}
+				 
+				var Count = getGridRowCount("table117");
+                for (var i = 0; i < Count; i++) {
+
+					if (getValueFromTableCell("table117", i, 0) == 'AL')
+			         {
+						{
+								attrbList += "&<Total_Requested_Amount>&" + getValueFromColumnName("table117",i,"Total Requested Amount");
+								attrbList += "&<Admin_Fees>&" + getValueFromColumnName("table117",i,"Admin Fees");
+								attrbList += "&<Tenor_Monthly>&" + getValueFromColumnName("table117",i,"Tenor Monthly");
+								attrbList += "&<Installment_Amount_Monthly>&" + getValueFromColumnName("table117",i,"Installment Amount Monthly");
+								attrbList += "&<Last_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"Last Installment date Monthly");
+								attrbList += "&<First_Installment_date_Monthly>&" + getValueFromColumnName("table117",i,"First Installment date Monthly");
+								
+						}
+                     }
+
+				}
+				 
+					return attrbList;
+}
+
+
+//--------------------------------------------------------------------
+function services_Murabaha_Delivery_Authorization()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	//var Application_Date =  getValue('CreatedDateTime');//Need to check
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check
+		
+		return attrbList;
+}
+
+	
+	
+//--------------------------------------------------------------------
+function services_Murabaha_Purchase_Request()
+{
+	var attrbList="";
+	var Product_Type = getValue('Product_Type');
+	var Sub_Product_Type= getValue('Sub_Product_Type'); //Secured or unsecured
+	var Request_Type =  getValue('Request_Type');
+	//var Application_Date =  getValue('CreatedDateTime');//Need to check
+	attrbList += "&<Application_Date:>&" + getValue('CreatedDateTime');
+	attrbList += "&<Customer_Name>&" + getValue('Applicant_Name');
+	attrbList += "&<Customer_National_ID/CIF>&" + getValue('Applicant_National_ID');
+	var year3 = new Date().getFullYear();
+	var month3 =  new Date().getMonth();
+	var date3 = new Date().getDate();
+	month3 = parseInt(month3) + parseInt("1");
+	var current_date_time3 = date3 + "/"+ month3 + "/" +year3;
+	attrbList += "&<Printed_Date>&" + current_date_time3 ;//needto check
+	
+	return attrbList;
+}

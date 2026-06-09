@@ -858,26 +858,6 @@ function click_LOS(ControlObject) {
 	}
 	
 	
-	//Added by Shivanshu
-	if (pControlName == 'AccountCreationBTN') {
-		
-		if(getValue('Customer_Type')=='New To Bank'){
-		
-	            var tempServerResponse = executeServerEvent("AccountCreationBTN", "onClick", getValue("Applicant_National_ID"), true);
-	            var serverResponse = tempServerResponse.split("~");
-	            var status = serverResponse[0];
-	            var alertMessage = serverResponse[1];
-	            if (status == "true") {
-	                showAlertDialog("" + alertMessage);
-	            } else {
-	                showAlertDialog("" + alertMessage);
-	            }
-				
-			} else {
-					showAlertDialog("Account can be created for New To Bank Customer only");
-			}
-	  }
-	
 	/*************************************************Integrations ends*************************************************************/
 	else if('button197'==pControlName)
 	{
@@ -3654,7 +3634,7 @@ function Generate_Template_Calling_Function()
 	//Added by Akash 11-05-26-------Start---------------------------------
 	if(docname == "Intl Commodity Murabaha Fin Contract-Individuals")
 	{		
-		if(getValue("Product_Type") == "MR")
+		if(getValue("Product_Type") == "PL")
 		{	
 			attrbList += NG_Intl_Commodity_Fin_Contract_Indv();
 			docname ="Intl Commodity Murabaha Fin Contract-Individuals";
@@ -3663,7 +3643,7 @@ function Generate_Template_Calling_Function()
 	
 	if(docname == "Intl Comdty Murabaha Fin Contract-Ints Prd Indv")
 	{		
-		if(getValue("Product_Type") == "MR")
+		if(getValue("Product_Type") == "PL")
 		{	
 			attrbList += NG_Intl_Commodity_Murabaha_FinContract_VarInst_Indv();
 			docname ="Intl Comdty Murabaha Fin Contract-Ints Prd Indv";
@@ -3672,7 +3652,7 @@ function Generate_Template_Calling_Function()
 	
 	if(docname == "Intl Comdty Murabaha Contract-Agy-Indv Contract")
 	{		
-		if(getValue("Product_Type") == "MR")
+		if(getValue("Product_Type") == "PL")
 		{	
 			attrbList += NG_Intl_Commodity_Murabaha_Agency_Indv();
 			docname ="Intl Comdty Murabaha Contract-Agy-Indv Contract";
@@ -3681,7 +3661,7 @@ function Generate_Template_Calling_Function()
 	
 	if(docname == "Car Murabaha Contracts- Framework Agreement-LOR")
 	{		
-		if(getValue("Product_Type") == "MR")
+		if(getValue("Product_Type") == "AL")
 		{	
 			attrbList += NG_Car_Murabaha_Framework_LetterRecom();
 			docname ="Car Murabaha Contracts- Framework Agreement-LOR";
@@ -3690,12 +3670,89 @@ function Generate_Template_Calling_Function()
 	
 	if(docname == "Car Murabaha Contracts- Framework Agreement- CPR")
 	{		
-		if(getValue("Product_Type") == "MR")
+		if(getValue("Product_Type") == "AL")
 		{	
 			attrbList += NG_Car_Murabaha_Framework_CarPurchaseReq();
 			docname ="Car Murabaha Contracts- Framework Agreement- CPR";
 		}
 	}	
+	
+	//----------------------New One Adding-----------------------------
+	
+	if(docname == "Ack of Deposit or Certificate Against Debt-ALL")
+	{		
+		if (getValue("Sub_Product_Type") === "Secured")
+		{	
+			attrbList += ack_Of_Deposit_Or_Certificate_Against_Debt_Secured();
+			docname ="Ack of Deposit or Certificate Against Debt-ALL";
+		}
+
+	}
+	
+	if(docname == "Murabaha Car Finance Contract - Various Terms")
+	{		
+		if (getValue("Product_Type") === "AL")
+		{	
+			attrbList += murabaha_Car_Finance_Contract_Various_Terms();
+			docname ="Murabaha Car Finance Contract - Various Terms";
+		}
+
+	}
+		
+		
+	if(docname == "Murabaha car financing contract")
+	{		
+		if (getValue("Product_Type") === "AL")
+		{	
+			attrbList += murabaha_Car_Financing_Contract();
+			docname ="Murabaha car financing contract";
+		}
+
+	}
+	
+	
+	if(docname == "Murabaha Service Contract - Various Terms")
+	{		
+		if (getValue("Product_Type") === "MR")
+		{	
+			attrbList += murabaha_Service_Contract_Various_Terms();
+			docname ="Murabaha Service Contract - Various Terms";
+		}
+
+	}
+	
+	
+	if(docname == "Murabaha Services Contract")
+	{		
+		if (getValue("Product_Type") === "MR")
+		{	
+			attrbList += murabaha_Services_Contract();
+			docname ="Murabaha Services Contract";
+		}
+
+	}
+	
+	if(docname == "Services Murabaha - Delivery Authorization")
+	{		
+		if (getValue("Product_Type") === "MR")
+		{	
+			attrbList += services_Murabaha_Delivery_Authorization();
+			docname ="Services Murabaha - Delivery Authorization";
+		}
+
+	}
+	
+	if(docname == "Services Murabaha - Purchase Request")
+	{		
+		if (getValue("Product_Type") === "MR")
+		{	
+			attrbList += services_Murabaha_Purchase_Request();
+			docname ="Services Murabaha - Purchase Request";
+		}
+
+	}
+	
+	//------------------------------New One Ending-----------------------
 		//-----------END---------------------------------
 	
 	if(docname == "Finance Application")
