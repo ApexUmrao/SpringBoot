@@ -19,6 +19,7 @@ import org.apache.log4j.PropertyConfigurator;
 import com.newgen.iforms.custom.IFormListenerFactory;
 import com.newgen.iforms.custom.IFormReference;
 import com.newgen.iforms.custom.IFormServerEventHandler;
+import com.newgen.iforms.user.cache.RLOSMappingCache;
 
 
 public class LOS_EG implements IFormListenerFactory {
@@ -38,6 +39,7 @@ public class LOS_EG implements IFormListenerFactory {
 	public IFormServerEventHandler getClassInstance(IFormReference arg0) {
 		setLogger(arg0);
 		String activityName = arg0.getActivityName();
+		RLOSMappingCache.getInstance();
 		if ("LOS_EG".equalsIgnoreCase(processName)) {
 			try {
 				mLogger.info("Activity Name : " + activityName);
@@ -98,57 +100,7 @@ public class LOS_EG implements IFormListenerFactory {
 		return null;
 	}
 
-	/*public static void setLogger(IFormReference iformObj) {
-		try {
-			Date date = new Date();
-			DateFormat logDateFormat = new SimpleDateFormat("dd-MM-yyyy");
-			String wiName=iformObj.getObjGeneralData().getM_strProcessInstanceId();
-
-			if ((loggerDateMap.get(logDateFormat.format(date)) != null)
-					&& (((String) loggerDateMap.get(logDateFormat.format(date))).equalsIgnoreCase("Y"))) {
-				return;
-			}
-
-			String dynamicLog = null;
-			String orgFileName = null;
-			String rplogFilePath = System.getProperty("user.dir")	+ File.separatorChar +"LOS_CustomLogs" + File.separatorChar + "LOS_EG_Logs";
-			String logFilePath=rplogFilePath+ File.separatorChar+ logDateFormat.format(date);
-			String logFileName = wiName + ".log";
-			dynamicLog = logFilePath + File.separatorChar + logFileName;
-			Properties p = new Properties();
-			p.load(new FileInputStream(System.getProperty("user.dir")+ File.separator + "LOS_Log_config"+ File.separator+ "log4j_aub_los.properties"));
-			File d = new File(logFilePath);
-			d.mkdirs();
-			File fl = new File(dynamicLog);
-			if (fl.createNewFile())
-			{
-				mLogger.info("*****Log file created successfully");
-			} 
-			else
-			{
-				mLogger.info("*****Updating Log File");
-			}
-			dynamicLog = "LOS_CustomLogs/" + processName + "_Logs/" + logDateFormat.format(date) + "/" + processName
-					+ "_Log.xml";
-			orgFileName = p.getProperty("log4j.appender." + loggerName + ".File");
-			if ((orgFileName != null) && (!(orgFileName.equalsIgnoreCase("")))) {
-				dynamicLog = orgFileName.substring(0, orgFileName.lastIndexOf("/") + 1) + logDateFormat.format(date)
-						+ orgFileName.substring(orgFileName.lastIndexOf("/"));
-			}
-			d = new File(dynamicLog.substring(0, dynamicLog.lastIndexOf("/")));
-			d.mkdirs();
-			fl = new File(dynamicLog);
-			if (!(fl.exists())) {
-				fl.createNewFile();
-			}
-			p.put("log4j.appender." + loggerName + ".File", dynamicLog);
-			PropertyConfigurator.configure(p);
-
-			loggerDateMap.put(logDateFormat.format(date), "Y");
-		} catch (Exception e) {
-			printException(e);
-		}
-	}*/
+	
 	public static void setLogger(IFormReference iformObj)
 	{
 		try

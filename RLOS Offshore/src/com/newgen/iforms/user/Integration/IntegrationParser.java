@@ -333,8 +333,10 @@ public class IntegrationParser {
 							+ inputXMLFDDetails.substring(inputXMLFDDetails.indexOf("</No>"), inputXMLFDDetails.length());
 					
 					LOS_EG.mLogger.info("Final input XML for  FD Enq " + inputXMLFDDetails);
-					String responseXMLFDDetails = SocketConnector.getSocketResponse(inputXMLFDDetails,
-							inputDetailsFDDetails.split("~")[1], inputDetailsFDDetails.split("~")[2]);
+//					String responseXMLFDDetails = SocketConnector.getSocketResponse(inputXMLFDDetails,
+//							inputDetailsFDDetails.split("~")[1], inputDetailsFDDetails.split("~")[2]);
+					
+					String responseXMLFDDetails = Integration_Handler.getRequestURL(inputXMLFDDetails,ifr);
 							
 					LOS_EG.mLogger.info("output XML for  FD Enq " + responseXMLFDDetails);
 					

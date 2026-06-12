@@ -393,7 +393,7 @@ public class LOS_Introduction implements IFormServerEventHandler {
 						try
 						{
 						status="";
-						Integration_Handler.bookLoan(ifr,param);
+						Integration_Handler.bookLoanManual(ifr,param);
 						if (status.split("~")[0].equals("true")) {
 							ifr.setStyle("button194", "disable", "true");
 							//ifr.setValue("ReserveCollateral_Status", "Y");

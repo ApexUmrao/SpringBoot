@@ -120,7 +120,7 @@ public class Operations implements IFormServerEventHandler {
 						try
 						{
 						//String	status1 = Integration_Handler.Send_SMS(ifr);
-						status=Integration_Handler.bookLoan(ifr,param);
+						status=Integration_Handler.bookLoanManual(ifr,param);
 						LOS_EG.mLogger.info("Inside book Loan: beofre " + status);
 						if (status.split("~")[0].equals("True")) {
 							LOS_EG.mLogger.info("Inside book Loan: " + status);

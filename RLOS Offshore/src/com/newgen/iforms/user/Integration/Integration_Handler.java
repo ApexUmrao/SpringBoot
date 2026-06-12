@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +27,12 @@ import com.newgen.iforms.custom.IFormReference;
 import com.newgen.iforms.user.LOS_CommonMethods;
 import com.newgen.iforms.user.LOS_EG;
 import com.newgen.iforms.user.XMLParser;
+import com.newgen.iforms.user.cache.RLOSMappingCache;
 import com.newgen.webserviceclient.NGWebServiceClient;
 @SuppressWarnings("rawtypes")
 public class Integration_Handler {
+
+	static HashMap<String,String> APIRequestURLMasterMap ;
 
 	public static String fetchCustomerDetails(String CustID, String CustomerType, IFormReference ifr) {
 		LOS_EG.mLogger.info("inside fetchCustomerDetails");
@@ -44,8 +46,9 @@ public class Integration_Handler {
 						+ inputXML.substring(inputXML.indexOf("</CustID>"), inputXML.length());
 				inputXML = inputXML.substring(0, inputXML.indexOf("<CustNIN>")) + "<CustNIN>" + CustID
 						+ inputXML.substring(inputXML.indexOf("</CustNIN>"), inputXML.length());
-				String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
-						inputDetails.split("~")[2]);
+//				String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
+//						inputDetails.split("~")[2]);
+				String responseXML=getRequestURL(inputXML,ifr);
 				return IntegrationParser.parseCustomerDetails(responseXML, ifr, CustomerType);
 			
 			
@@ -68,8 +71,12 @@ public class Integration_Handler {
 		String inputXML = inputDetails.split("~")[0];
 		inputXML = inputXML.substring(0, inputXML.indexOf("<CustNIN>")) + "<CustNIN>" + nationalID
 				+ inputXML.substring(inputXML.indexOf("</CustNIN>"), inputXML.length());
-		String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
-				inputDetails.split("~")[2]);
+//		String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
+//				inputDetails.split("~")[2]);
+		
+		String responseXML=getRequestURL(inputXML,ifr);
+
+		
 		XMLParser xmlParser = new XMLParser();
 		xmlParser.setInputXML(responseXML);
 		if ("00000".equalsIgnoreCase(xmlParser.getValueOf("Code")) && "SUCCESS".equalsIgnoreCase(xmlParser.getValueOf("Desc"))) {
@@ -107,8 +114,11 @@ public class Integration_Handler {
 				
 			LOS_EG.mLogger.info("Input XML for Fetch Customer " + inputXMLCustInfo);
 			
-			String responseXMLCustInfo = SocketConnector.getSocketResponse(inputXMLCustInfo, inputDetailsCustInfo.split("~")[1],
-						inputDetailsCustInfo.split("~")[2]);
+//			String responseXMLCustInfo = SocketConnector.getSocketResponse(inputXMLCustInfo, inputDetailsCustInfo.split("~")[1],
+//						inputDetailsCustInfo.split("~")[2]);
+			
+			String responseXMLCustInfo=getRequestURL(inputXMLCustInfo,ifr);
+
 			
 			// String responseXMLCustInfo = "<?xml version='1.0' encoding='UTF-8'?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><soapenv:Body><getResponseResponse xmlns=\"http://middleware.webservice.aub.com\"><getResponseReturn><AUB_MESSAGE><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>RLOS</ReqID><ChSysID>RLOS</ChSysID><FuncID>GET_CUST_DETAILS</FuncID><TxnRef>RLOS4999062772852</TxnRef><TxnDate>202112221247414</TxnDate><TxnStatus>Y</TxnStatus><SessLang>E</SessLang><VerNo>0001</VerNo><SessToken>UkxPU0AhMTI=</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><GET_CUST_DETAILS_RS><Name>NA</Name><Type>EC</Type><AnalysisCode>G4</AnalysisCode><ParentCountry>EG</ParentCountry><ResCountry>EG</ResCountry><Branch>0018</Branch><ArabicName>NA</ArabicName><CPR>28407070103174</CPR><Gender>1</Gender><Address1>NA</Address1><Address2>NA</Address2><Address3>NA</Address3><DateofBirth>19840707</DateofBirth><CustomerType>EC</CustomerType><CustomerTypeDecsription>Staff</CustomerTypeDecsription><IsClosed>A</IsClosed><Email>ahmedseaf84@hotmail.com</Email><Tel2>0222582481</Tel2><SmsAlert>01050562318</SmsAlert><Fax>0</Fax><Nationality>EG</Nationality><IncomeFrom>00000000000000000000</IncomeFrom><IncomeTo>00000000000000000000</IncomeTo><Language>AR</Language><IsFatca>N</IsFatca><IsJoint>N</IsJoint><AccountOfficer>HR</AccountOfficer><AccountOfficerName>Human Resources</AccountOfficerName><RegisteredForIVR>N</RegisteredForIVR><CPRExpireDate>0</CPRExpireDate><MaritalStatus>2</MaritalStatus><NoOfDependents>3</NoOfDependents><DateOfIssue>0</DateOfIssue><BasicSalary>000000000000000</BasicSalary><KYCLastUpdatedDate>1201202</KYCLastUpdatedDate><NoOfCreditCards>0</NoOfCreditCards><BirthPlace>Egypt</BirthPlace><Occupation>005</Occupation><RiskCountry>EG</RiskCountry></GET_CUST_DETAILS_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE></getResponseReturn></getResponseResponse></soapenv:Body></soapenv:Envelope>"; //Dummy Response
 			
@@ -142,8 +152,12 @@ public class Integration_Handler {
 			inputXML = inputXML.substring(0, inputXML.indexOf("<CustomerLocation>")) + "<CustomerLocation>"
 					+ inputXML.substring(inputXML.indexOf("</CustomerLocation>"), inputXML.length());
 			LOS_EG.mLogger.info("Final input XML for  Collateral Enq " + inputXML);
-			String responseXML = SocketConnector.getSocketResponse(inputXML,
-					inputDetails.split("~")[1], inputDetails.split("~")[2]);
+			
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,
+//					inputDetails.split("~")[1], inputDetails.split("~")[2]);
+			
+			String responseXML=getRequestURL(inputXML,ifr);
+
 			
 			// String responseXML = "<AUB_MESSAGE><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>IB</ReqID><FuncID>COLLAT_ENQ_ACC</FuncID><TxnRef>1638005382017</TxnRef><TxnDate>20211127121500</TxnDate><TxnStatus>Y</TxnStatus><SessLang>E</SessLang><VerNo>0010</VerNo><SessToken>123456789</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><COLLAT_ENQ_ACC_RS><Account><CollateralType>DPS</CollateralType><CollateralTypeDescription>Deposits</CollateralTypeDescription><CollateralDealType>G3M</CollateralDealType><CollateralDealReference>3014000001152</CollateralDealReference><CollateralDealBranch>0001</CollateralDealBranch><TotalAssigned>000000000000000</TotalAssigned><BankValuation>000000002500000</BankValuation><AvailableCollateralValue>000000002500000</AvailableCollateralValue><CollateralHeader>DPS0001G3M3014000001152</CollateralHeader></Account><Account><CollateralType>DPS</CollateralType><CollateralTypeDescription>Deposits</CollateralTypeDescription><CollateralDealType>G3M</CollateralDealType><CollateralDealReference>301400120120F</CollateralDealReference><CollateralDealBranch>0001</CollateralDealBranch><TotalAssigned>000000000000000</TotalAssigned><BankValuation>000000174325000</BankValuation><AvailableCollateralValue>000000174325000</AvailableCollateralValue><CollateralHeader>DPS0001G3M301400120120F</CollateralHeader></Account></COLLAT_ENQ_ACC_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>"; //Dummy Response
 			return IntegrationParser.parseCollateralAccEnq(responseXML, ifr,(String)ifr.getValue("Collateral_CIF"),name,nationality);
@@ -208,8 +222,11 @@ public class Integration_Handler {
 				+ CollateralHeader
 				+ inputXML.substring(inputXML.indexOf("</CollateralHeader>"), inputXML.length());
 
-		String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
-				inputDetails.split("~")[2]);
+//		String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
+//				inputDetails.split("~")[2]);
+		
+		String responseXML=getRequestURL(inputXML,ifr);
+
 
 		// String responseXML = "<AUB_MESSAGE><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>IB</ReqID><FuncID>COLLAT_RESERV</FuncID><TxnRef>1638005594267</TxnRef><TxnDate>20211127122150</TxnDate><TxnStatus>Y</TxnStatus><SessLang>E</SessLang><VerNo>0010</VerNo><SessToken>123456789</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><RESERVATION_OF_COLLATERAL_RS><ReservationReference>RSL30140021100010001</ReservationReference></RESERVATION_OF_COLLATERAL_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>"; //Dummy Response
 		
@@ -1297,8 +1314,11 @@ public class Integration_Handler {
 			inputXML = inputXML.substring(0, inputXML.indexOf("<NationalIdNumber>")) + "<NationalIdNumber>"
 					+ ifr.getValue("table107_CustomerNationalID")
 					+ inputXML.substring(inputXML.indexOf("</NationalIdNumber>"), inputXML.length());
-			String responseXML = SocketConnector.getSocketResponse(inputXML,
-					inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,
+//					inputDetails.split("~")[1], inputDetails.split("~")[2]);
+			
+			String responseXML=getRequestURL(inputXML,ifr);
+
 			return IntegrationParser.parseNIDCheck(responseXML, ifr);
 		} catch (Exception e) {
 
@@ -1383,7 +1403,10 @@ public class Integration_Handler {
 		inputXML = inputXML.substring(0, inputXML.indexOf("<FirstRepaymentDate>")) + "<FirstRepaymentDate>"+(getFrequency(ifr,data.split("~")[3]).split("~")[1]).replace("/", "")+ inputXML.substring(inputXML.indexOf("</FirstRepaymentDate>"), inputXML.length());
 		inputXML = inputXML.substring(0, inputXML.indexOf("<MaturityDate>")) + "<MaturityDate>"+data.split("~")[2].replace("/", "")+ inputXML.substring(inputXML.indexOf("</MaturityDate>"), inputXML.length());
 		LOS_EG.mLogger.info("Final Loan calculator Request is "+inputXML);
-		String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//		String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+		String responseXML=getRequestURL(inputXML,ifr);
+		
 		responseXML=responseXML.replace("&lt;", "<");
 		responseXML=responseXML.replace("&gt;", ">");
 		LOS_EG.mLogger.info("Response for Loan Calculator  is "+responseXML);
@@ -1398,159 +1421,317 @@ public class Integration_Handler {
 		
 		
 	}
-	public static String bookLoan(IFormReference ifr,String data) throws IOException {
-		try 
-		{
-		LOS_EG.mLogger.info("inside bookLoan");
-		
-		//Ajay 15Dec Start
-		String Sub_Product_Type = (String) ifr.getValue("Sub_Product_Type");		
-		String collResNo = (String)ifr.getValue("CollResNo");
-		String pType = (String)ifr.getValue("Product_Type");
-		LOS_EG.mLogger.info("ProductType : "+pType);
-		String loanType = "";
-		if(pType.equalsIgnoreCase("PL")) 
-		{
-			loanType = "IML";
-		}
-		else if(pType.equalsIgnoreCase("AL"))
-		{
-			loanType="VIL";
-		}
-		else if(pType.equalsIgnoreCase("MR"))
-		{
-			loanType="MUR";
-		}
-		else if(pType.equalsIgnoreCase("CL"))
-		{
-			loanType="MCL";
-		}
+//	public static String bookLoan(IFormReference ifr,String data) throws IOException {
+//		try 
+//		{
+//		LOS_EG.mLogger.info("inside bookLoan");
+//		
+//		//Ajay 15Dec Start
+//		String Sub_Product_Type = (String) ifr.getValue("Sub_Product_Type");		
+//		String collResNo = (String)ifr.getValue("CollResNo");
+//		String pType = (String)ifr.getValue("Product_Type");
+//		LOS_EG.mLogger.info("ProductType : "+pType);
+//		String loanType = "";
+//		if(pType.equalsIgnoreCase("PL")) 
+//		{
+//			loanType = "IML";
+//		}
+//		else if(pType.equalsIgnoreCase("AL"))
+//		{
+//			loanType="VIL";
+//		}
+//		else if(pType.equalsIgnoreCase("MR"))
+//		{
+//			loanType="MUR";
+//		}
+//		else if(pType.equalsIgnoreCase("CL"))
+//		{
+//			loanType="MCL";
+//		}
+//		try
+//		{
+//			if(Sub_Product_Type.equalsIgnoreCase("Secured") && (!collResNo.equalsIgnoreCase("")))
+//			{
+//				String reservationEnquiryOP = checkReservationBeforeLoanBook(ifr);
+//				
+//				String resArr[] = reservationEnquiryOP.split("~");
+//				if(resArr[0].equalsIgnoreCase("true"))
+//				{
+//					double reserveAmount = LOS_CommonMethods.getDoubleAmount(resArr[1]);
+//					double loanAmount = LOS_CommonMethods.getDoubleAmount("Credit_Approved_Amount");
+//					
+//					if(reserveAmount<loanAmount)
+//					{
+//						return "false~Reserve Amount is less than Finance Amount";
+//					}
+//				}
+//				else
+//				{
+//					return "false~"+resArr[1];
+//				}
+//			}
+//		}
+//		catch(Exception rE)	
+//		{
+//			
+//		}
+//		//Ajay 15Dec End
+//		
+//		String interestRate=ifr.getTableCellValue("table117", 0, 2);
+//		String marginRate=ifr.getTableCellValue("table117", 0, 28);
+//		if(Sub_Product_Type.equalsIgnoreCase("Secured"))
+//		{
+//			interestRate = String.format("%.03f", (LOS_CommonMethods.getDoubleAmount(interestRate) + LOS_CommonMethods.getDoubleAmount(marginRate)));
+//		}
+//		else
+//		{
+//			marginRate = "";
+//		}
+//		
+//		String inputDetails = getInputXML("BOOK_LOAN");
+//		LOS_EG.mLogger.info("Socket Server IP is " + inputDetails.split("~")[1]);
+//		LOS_EG.mLogger.info("Socket Server Port is " + inputDetails.split("~")[2]);
+//		String inputXML = inputDetails.split("~")[0];
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<CustNIN>")) + "<CustNIN>" +  ifr.getValue("Applicant_National_ID")
+//		+ inputXML.substring(inputXML.indexOf("</CustNIN>"), inputXML.length());
+//		String accNumber=data.split("~")[0];
+//		String branch=accNumber.substring(0, 4);
+//		String suffix=accNumber.substring(10, 13);
+//		String cifID= accNumber.substring(4,10);//5-10
+//		double AdminFeeAmount=0;
+//		try //Ajay 29Nov
+//		{
+//			if(Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45))>0 && Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45))<100)
+//			{
+//				AdminFeeAmount=(Double.parseDouble(data.split("~")[5])*Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45)))/100;
+//			}
+//		}
+//		catch(Exception e)
+//		{
+//			
+//		}	
+//		
+//
+//		//Currecy from product details
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Branch>")) + "<Branch>"+ branch+ inputXML.substring(inputXML.indexOf("</Branch>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<EQNUserID>")) + "<EQNUserID>"+""+ inputXML.substring(inputXML.indexOf("</EQNUserID>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Currency>")) + "<Currency>"+"EGP"+ inputXML.substring(inputXML.indexOf("</Currency>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<RMcode>")) + "<RMcode>"+"EGY"+ inputXML.substring(inputXML.indexOf("</RMcode>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<LoanType>")) + "<LoanType>"+loanType+ inputXML.substring(inputXML.indexOf("</LoanType>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<CIF>")) + "<CIF>"+cifID+ inputXML.substring(inputXML.indexOf("</CIF>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<CLC>")) + "<CLC>"+"000"+ inputXML.substring(inputXML.indexOf("</CLC>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Amount>")) + "<Amount>"+LOS_CommonMethods.handleDoubleZeroInRequest(LOS_CommonMethods.getDoubleAmount(data.split("~")[5]))+ inputXML.substring(inputXML.indexOf("</Amount>"), inputXML.length());//Ajay 29Nov
+//		// inputXML = inputXML.substring(0, inputXML.indexOf("<startDate>")) + "<startDate>"+new SimpleDateFormat("yyyyMMdd").format(new Date())+ inputXML.substring(inputXML.indexOf("</startDate>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<startDate>")) + "<startDate>"+getLoanStartDate()+ inputXML.substring(inputXML.indexOf("</startDate>"), inputXML.length());
+//		//startDate cussrent dat yyyy/mm/dd
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Pegged>")) + "<Pegged>"+"N"+ inputXML.substring(inputXML.indexOf("</Pegged>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestFrequency>")) + "<InterestFrequency>"+getFrequency(ifr,data.split("~")[1],data.split("~")[3]).split("~")[0]+ inputXML.substring(inputXML.indexOf("</InterestFrequency>"), inputXML.length());
+//		//revolving code
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Capitalizedflag>")) + "<Capitalizedflag>"+"N"+ inputXML.substring(inputXML.indexOf("</Capitalizedflag>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<MaturityDate>")) + "<MaturityDate>"+data.split("~")[2].replace("/", "")+ inputXML.substring(inputXML.indexOf("</MaturityDate>"), inputXML.length());
+//		//MaturityDate--last installment date
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<ReceivingAccountBranchNumber>")) + "<ReceivingAccountBranchNumber>"+branch+ inputXML.substring(inputXML.indexOf("</ReceivingAccountBranchNumber>"), inputXML.length());
+//		
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<ReceivingAccountBasicNumber>")) + "<ReceivingAccountBasicNumber>"+cifID+ inputXML.substring(inputXML.indexOf("</ReceivingAccountBasicNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<ReceivingAccountSuffix>")) + "<ReceivingAccountSuffix>"+suffix+ inputXML.substring(inputXML.indexOf("</ReceivingAccountSuffix>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PrinciplePaymentAccountBranchNumber>")) + "<PrinciplePaymentAccountBranchNumber>"+branch+ inputXML.substring(inputXML.indexOf("</PrinciplePaymentAccountBranchNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PrinciplePaymentAccountBasicNumber>")) + "<PrinciplePaymentAccountBasicNumber>"+cifID+ inputXML.substring(inputXML.indexOf("</PrinciplePaymentAccountBasicNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PrinciplePaymentAccountSuffixNumber>")) + "<PrinciplePaymentAccountSuffixNumber>"+suffix+ inputXML.substring(inputXML.indexOf("</PrinciplePaymentAccountSuffixNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestPaymentAccountBranchNumber>")) + "<InterestPaymentAccountBranchNumber>"+branch+ inputXML.substring(inputXML.indexOf("</InterestPaymentAccountBranchNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestPaymentAccountBasicNumber>")) + "<InterestPaymentAccountBasicNumber>"+cifID+ inputXML.substring(inputXML.indexOf("</InterestPaymentAccountBasicNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestPaymentAccountSuffixNumber>")) + "<InterestPaymentAccountSuffixNumber>"+suffix+ inputXML.substring(inputXML.indexOf("</InterestPaymentAccountSuffixNumber>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestDaysBasis>")) + "<InterestDaysBasis>"+"1"+ inputXML.substring(inputXML.indexOf("</InterestDaysBasis>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<BaseCode>")) + "<BaseCode>"+""+ inputXML.substring(inputXML.indexOf("</BaseCode>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<DiffCode>")) + "<DiffCode>"+""+ inputXML.substring(inputXML.indexOf("</DiffCode>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Rate>")) + "<Rate>"+interestRate+ inputXML.substring(inputXML.indexOf("</Rate>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Margin>")) + "<Margin>"+marginRate+ inputXML.substring(inputXML.indexOf("</Margin>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PenaltyRateCodePrinciple>")) + "<PenaltyRateCodePrinciple>"+""+ inputXML.substring(inputXML.indexOf("</PenaltyRateCodePrinciple>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PenaltyRateCodeInterest>")) + "<PenaltyRateCodeInterest>"+""+ inputXML.substring(inputXML.indexOf("</PenaltyRateCodeInterest>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<ReviewFrequency>")) + "<ReviewFrequency>"+""+ inputXML.substring(inputXML.indexOf("</ReviewFrequency>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<NextReviewDate>")) + "<NextReviewDate>"+""+ inputXML.substring(inputXML.indexOf("</NextReviewDate>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<Rollover>")) + "<Rollover>"+"Y"+ inputXML.substring(inputXML.indexOf("</Rollover>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<CommitmentRef>")) + "<CommitmentRef>"+""+ inputXML.substring(inputXML.indexOf("</CommitmentRef>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<OriginalStartDate>")) + "<OriginalStartDate>"+""+ inputXML.substring(inputXML.indexOf("</OriginalStartDate>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<LoanSuffix>")) + "<LoanSuffix>"+"300"+ inputXML.substring(inputXML.indexOf("</LoanSuffix>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<FirstRepaymentDate>")) + "<FirstRepaymentDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</FirstRepaymentDate>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestAdjustment>")) + "<InterestAdjustment>"+""+ inputXML.substring(inputXML.indexOf("</InterestAdjustment>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<NarrativeLine1>")) + "<NarrativeLine1>"+""+ inputXML.substring(inputXML.indexOf("</NarrativeLine1>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<NarrativeLine2>")) + "<NarrativeLine2>"+""+ inputXML.substring(inputXML.indexOf("</NarrativeLine2>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<ScheduleRecalculation>")) + "<ScheduleRecalculation>"+"2"+ inputXML.substring(inputXML.indexOf("</ScheduleRecalculation>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<RegularAmount>")) + "<RegularAmount>"+LOS_CommonMethods.handleDoubleZeroInRequest(AdminFeeAmount)+ inputXML.substring(inputXML.indexOf("</RegularAmount>"), inputXML.length());//Ajay 29Nov
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<RMLoanRef>")) + "<RMLoanRef>"+"CCLB-2021-06-2"+ inputXML.substring(inputXML.indexOf("</RMLoanRef>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<NumberOfPrincipleRepayments>")) + "<NumberOfPrincipleRepayments>"+"0"+ inputXML.substring(inputXML.indexOf("</NumberOfPrincipleRepayments>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PrincipleRepaymentAmount>")) + "<PrincipleRepaymentAmount>"+data.split("~")[4]+ inputXML.substring(inputXML.indexOf("</PrincipleRepaymentAmount>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<PrincipleRepaymentFrequency>")) + "<PrincipleRepaymentFrequency>"+getFrequency(ifr,data.split("~")[1],data.split("~")[3]).split("~")[0]+ inputXML.substring(inputXML.indexOf("</PrincipleRepaymentFrequency>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<NextInterestDate>")) + "<NextInterestDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</NextInterestDate>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<SecurityCode>")) + "<SecurityCode>"+"SE"+ inputXML.substring(inputXML.indexOf("</SecurityCode>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<FYCRateType>")) + "<FYCRateType>"+""+ inputXML.substring(inputXML.indexOf("</FYCRateType>"), inputXML.length());
+//		inputXML = inputXML.substring(0, inputXML.indexOf("<OriginalLoanReference>")) + "<OriginalLoanReference>"+ifr.getValue("CollResNo")+ inputXML.substring(inputXML.indexOf("</OriginalLoanReference>"), inputXML.length());
+//		
+//		LOS_EG.mLogger.info("Final Book LOAN Request IS "+inputXML);
+//		String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//		//responseXML=responseXML.replace("&lt;", "<");
+//		LOS_EG.mLogger.info("Response for Book LOAN  IS "+responseXML);
+//		return IntegrationParser.parseLoanBooking(responseXML, ifr);
+//		} 
+//		catch (Exception e) {
+//
+//			LOS_EG.mLogger.info("Iscore error is" + e);
+//			LOS_EG.mLogger.error(LOS_CommonMethods.getCustomStackTrace(e));
+//			LOS_EG.printException(e);
+//			return "false~Error in fetching data from middleware";
+//		}
+//	}
+	
+	public static String bookLoanManual(IFormReference ifr,String data) throws IOException {
 		try
 		{
-			if(Sub_Product_Type.equalsIgnoreCase("Secured") && (!collResNo.equalsIgnoreCase("")))
+			LOS_EG.mLogger.info("inside bookLoan");
+
+			//Ajay 15Dec Start
+			String Sub_Product_Type = (String) ifr.getValue("Sub_Product_Type");
+			String collResNo = (String)ifr.getValue("CollResNo");
+			String pType = (String)ifr.getValue("Product_Type");
+			LOS_EG.mLogger.info("ProductType : "+pType);
+
+			try
 			{
-				String reservationEnquiryOP = checkReservationBeforeLoanBook(ifr);
-				
-				String resArr[] = reservationEnquiryOP.split("~");
-				if(resArr[0].equalsIgnoreCase("true"))
+				if(Sub_Product_Type.equalsIgnoreCase("Secured") && (!collResNo.equalsIgnoreCase("")))
 				{
-					double reserveAmount = LOS_CommonMethods.getDoubleAmount(resArr[1]);
-					double loanAmount = LOS_CommonMethods.getDoubleAmount("Credit_Approved_Amount");
-					
-					if(reserveAmount<loanAmount)
+					String reservationEnquiryOP = checkReservationBeforeLoanBook(ifr);
+
+					String resArr[] = reservationEnquiryOP.split("~");
+					if(resArr[0].equalsIgnoreCase("true"))
 					{
-						return "false~Reserve Amount is less than Finance Amount";
+						double reserveAmount = LOS_CommonMethods.getDoubleAmount(resArr[1]);
+						double loanAmount = LOS_CommonMethods.getDoubleAmount("Credit_Approved_Amount");
+
+						if(reserveAmount<loanAmount)
+						{
+							return "false~Reserve Amount is less than Finance Amount";
+						}
+					}
+					else
+					{
+						return "false~"+resArr[1];
 					}
 				}
-				else
+			}
+			catch(Exception rE)
+			{
+
+			}
+			//Ajay 15Dec End
+
+			String interestRate=ifr.getTableCellValue("table117", 0, 2);
+			String marginRate=ifr.getTableCellValue("table117", 0, 28);
+			if(Sub_Product_Type.equalsIgnoreCase("Secured"))
+			{
+				interestRate = String.format("%.03f", (LOS_CommonMethods.getDoubleAmount(interestRate) + LOS_CommonMethods.getDoubleAmount(marginRate)));
+			}
+			else
+			{
+				marginRate = "";
+			}
+
+			String inputDetails = getInputXML("BOOK_LOAN");
+			LOS_EG.mLogger.info("Socket Server IP is " + inputDetails.split("~")[1]);
+			LOS_EG.mLogger.info("Socket Server Port is " + inputDetails.split("~")[2]);
+			String inputXML = inputDetails.split("~")[0];
+			inputXML = inputXML.substring(0, inputXML.indexOf("<CustNIN>")) + "<CustNIN>" +  ifr.getValue("Applicant_National_ID")
+			+ inputXML.substring(inputXML.indexOf("</CustNIN>"), inputXML.length());
+			String accNumber=data.split("~")[0];
+			String branch=accNumber.substring(0, 4);
+			String suffix=accNumber.substring(10, 13);
+			String cifID= accNumber.substring(4,10);//5-10
+			String loanAccountNumber = ifr.getValue("CustomerLoanAccountNumber").toString();
+			double AdminFeeAmount=0;
+			try //Ajay 29Nov
+			{
+				if(Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45))>0 && Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45))<100)
 				{
-					return "false~"+resArr[1];
+					AdminFeeAmount=(Double.parseDouble(data.split("~")[5])*Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45)))/100;
 				}
 			}
-		}
-		catch(Exception rE)	
-		{
-			
-		}
-		//Ajay 15Dec End
-		
-		String interestRate=ifr.getTableCellValue("table117", 0, 2);
-		String marginRate=ifr.getTableCellValue("table117", 0, 28);
-		if(Sub_Product_Type.equalsIgnoreCase("Secured"))
-		{
-			interestRate = String.format("%.03f", (LOS_CommonMethods.getDoubleAmount(interestRate) + LOS_CommonMethods.getDoubleAmount(marginRate)));
-		}
-		else
-		{
-			marginRate = "";
-		}
-		
-		String inputDetails = getInputXML("BOOK_LOAN");
-		LOS_EG.mLogger.info("Socket Server IP is " + inputDetails.split("~")[1]);
-		LOS_EG.mLogger.info("Socket Server Port is " + inputDetails.split("~")[2]);
-		String inputXML = inputDetails.split("~")[0];
-		inputXML = inputXML.substring(0, inputXML.indexOf("<CustNIN>")) + "<CustNIN>" +  ifr.getValue("Applicant_National_ID")
-		+ inputXML.substring(inputXML.indexOf("</CustNIN>"), inputXML.length());
-		String accNumber=data.split("~")[0];
-		String branch=accNumber.substring(0, 4);
-		String suffix=accNumber.substring(10, 13);
-		String cifID= accNumber.substring(4,10);//5-10
-		double AdminFeeAmount=0;
-		try //Ajay 29Nov
-		{
-			if(Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45))>0 && Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45))<100)
+			catch(Exception e)
 			{
-				AdminFeeAmount=(Double.parseDouble(data.split("~")[5])*Double.parseDouble((String)ifr.getTableCellValue("table117", 0, 45)))/100;
-			}
-		}
-		catch(Exception e)
-		{
-			
-		}	
-		
 
-		//Currecy from product details
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Branch>")) + "<Branch>"+ branch+ inputXML.substring(inputXML.indexOf("</Branch>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<EQNUserID>")) + "<EQNUserID>"+""+ inputXML.substring(inputXML.indexOf("</EQNUserID>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Currency>")) + "<Currency>"+"EGP"+ inputXML.substring(inputXML.indexOf("</Currency>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<RMcode>")) + "<RMcode>"+"EGY"+ inputXML.substring(inputXML.indexOf("</RMcode>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<LoanType>")) + "<LoanType>"+loanType+ inputXML.substring(inputXML.indexOf("</LoanType>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<CIF>")) + "<CIF>"+cifID+ inputXML.substring(inputXML.indexOf("</CIF>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<CLC>")) + "<CLC>"+"000"+ inputXML.substring(inputXML.indexOf("</CLC>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Amount>")) + "<Amount>"+LOS_CommonMethods.handleDoubleZeroInRequest(LOS_CommonMethods.getDoubleAmount(data.split("~")[5]))+ inputXML.substring(inputXML.indexOf("</Amount>"), inputXML.length());//Ajay 29Nov
-		// inputXML = inputXML.substring(0, inputXML.indexOf("<startDate>")) + "<startDate>"+new SimpleDateFormat("yyyyMMdd").format(new Date())+ inputXML.substring(inputXML.indexOf("</startDate>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<startDate>")) + "<startDate>"+getLoanStartDate()+ inputXML.substring(inputXML.indexOf("</startDate>"), inputXML.length());
-		//startDate cussrent dat yyyy/mm/dd
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Pegged>")) + "<Pegged>"+"N"+ inputXML.substring(inputXML.indexOf("</Pegged>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestFrequency>")) + "<InterestFrequency>"+getFrequency(ifr,data.split("~")[1],data.split("~")[3]).split("~")[0]+ inputXML.substring(inputXML.indexOf("</InterestFrequency>"), inputXML.length());
-		//revolving code
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Capitalizedflag>")) + "<Capitalizedflag>"+"N"+ inputXML.substring(inputXML.indexOf("</Capitalizedflag>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<MaturityDate>")) + "<MaturityDate>"+data.split("~")[2].replace("/", "")+ inputXML.substring(inputXML.indexOf("</MaturityDate>"), inputXML.length());
-		//MaturityDate--last installment date
-		inputXML = inputXML.substring(0, inputXML.indexOf("<ReceivingAccountBranchNumber>")) + "<ReceivingAccountBranchNumber>"+branch+ inputXML.substring(inputXML.indexOf("</ReceivingAccountBranchNumber>"), inputXML.length());
-		
-		inputXML = inputXML.substring(0, inputXML.indexOf("<ReceivingAccountBasicNumber>")) + "<ReceivingAccountBasicNumber>"+cifID+ inputXML.substring(inputXML.indexOf("</ReceivingAccountBasicNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<ReceivingAccountSuffix>")) + "<ReceivingAccountSuffix>"+suffix+ inputXML.substring(inputXML.indexOf("</ReceivingAccountSuffix>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PrinciplePaymentAccountBranchNumber>")) + "<PrinciplePaymentAccountBranchNumber>"+branch+ inputXML.substring(inputXML.indexOf("</PrinciplePaymentAccountBranchNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PrinciplePaymentAccountBasicNumber>")) + "<PrinciplePaymentAccountBasicNumber>"+cifID+ inputXML.substring(inputXML.indexOf("</PrinciplePaymentAccountBasicNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PrinciplePaymentAccountSuffixNumber>")) + "<PrinciplePaymentAccountSuffixNumber>"+suffix+ inputXML.substring(inputXML.indexOf("</PrinciplePaymentAccountSuffixNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestPaymentAccountBranchNumber>")) + "<InterestPaymentAccountBranchNumber>"+branch+ inputXML.substring(inputXML.indexOf("</InterestPaymentAccountBranchNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestPaymentAccountBasicNumber>")) + "<InterestPaymentAccountBasicNumber>"+cifID+ inputXML.substring(inputXML.indexOf("</InterestPaymentAccountBasicNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestPaymentAccountSuffixNumber>")) + "<InterestPaymentAccountSuffixNumber>"+suffix+ inputXML.substring(inputXML.indexOf("</InterestPaymentAccountSuffixNumber>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestDaysBasis>")) + "<InterestDaysBasis>"+"1"+ inputXML.substring(inputXML.indexOf("</InterestDaysBasis>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<BaseCode>")) + "<BaseCode>"+""+ inputXML.substring(inputXML.indexOf("</BaseCode>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<DiffCode>")) + "<DiffCode>"+""+ inputXML.substring(inputXML.indexOf("</DiffCode>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Rate>")) + "<Rate>"+interestRate+ inputXML.substring(inputXML.indexOf("</Rate>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Margin>")) + "<Margin>"+marginRate+ inputXML.substring(inputXML.indexOf("</Margin>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PenaltyRateCodePrinciple>")) + "<PenaltyRateCodePrinciple>"+""+ inputXML.substring(inputXML.indexOf("</PenaltyRateCodePrinciple>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PenaltyRateCodeInterest>")) + "<PenaltyRateCodeInterest>"+""+ inputXML.substring(inputXML.indexOf("</PenaltyRateCodeInterest>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<ReviewFrequency>")) + "<ReviewFrequency>"+""+ inputXML.substring(inputXML.indexOf("</ReviewFrequency>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<NextReviewDate>")) + "<NextReviewDate>"+""+ inputXML.substring(inputXML.indexOf("</NextReviewDate>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<Rollover>")) + "<Rollover>"+"Y"+ inputXML.substring(inputXML.indexOf("</Rollover>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<CommitmentRef>")) + "<CommitmentRef>"+""+ inputXML.substring(inputXML.indexOf("</CommitmentRef>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<OriginalStartDate>")) + "<OriginalStartDate>"+""+ inputXML.substring(inputXML.indexOf("</OriginalStartDate>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<LoanSuffix>")) + "<LoanSuffix>"+"300"+ inputXML.substring(inputXML.indexOf("</LoanSuffix>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<FirstRepaymentDate>")) + "<FirstRepaymentDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</FirstRepaymentDate>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<InterestAdjustment>")) + "<InterestAdjustment>"+""+ inputXML.substring(inputXML.indexOf("</InterestAdjustment>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<NarrativeLine1>")) + "<NarrativeLine1>"+""+ inputXML.substring(inputXML.indexOf("</NarrativeLine1>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<NarrativeLine2>")) + "<NarrativeLine2>"+""+ inputXML.substring(inputXML.indexOf("</NarrativeLine2>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<ScheduleRecalculation>")) + "<ScheduleRecalculation>"+"2"+ inputXML.substring(inputXML.indexOf("</ScheduleRecalculation>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<RegularAmount>")) + "<RegularAmount>"+LOS_CommonMethods.handleDoubleZeroInRequest(AdminFeeAmount)+ inputXML.substring(inputXML.indexOf("</RegularAmount>"), inputXML.length());//Ajay 29Nov
-		inputXML = inputXML.substring(0, inputXML.indexOf("<RMLoanRef>")) + "<RMLoanRef>"+"CCLB-2021-06-2"+ inputXML.substring(inputXML.indexOf("</RMLoanRef>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<NumberOfPrincipleRepayments>")) + "<NumberOfPrincipleRepayments>"+"0"+ inputXML.substring(inputXML.indexOf("</NumberOfPrincipleRepayments>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PrincipleRepaymentAmount>")) + "<PrincipleRepaymentAmount>"+data.split("~")[4]+ inputXML.substring(inputXML.indexOf("</PrincipleRepaymentAmount>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<PrincipleRepaymentFrequency>")) + "<PrincipleRepaymentFrequency>"+getFrequency(ifr,data.split("~")[1],data.split("~")[3]).split("~")[0]+ inputXML.substring(inputXML.indexOf("</PrincipleRepaymentFrequency>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<NextInterestDate>")) + "<NextInterestDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</NextInterestDate>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<SecurityCode>")) + "<SecurityCode>"+"SE"+ inputXML.substring(inputXML.indexOf("</SecurityCode>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<FYCRateType>")) + "<FYCRateType>"+""+ inputXML.substring(inputXML.indexOf("</FYCRateType>"), inputXML.length());
-		inputXML = inputXML.substring(0, inputXML.indexOf("<OriginalLoanReference>")) + "<OriginalLoanReference>"+ifr.getValue("CollResNo")+ inputXML.substring(inputXML.indexOf("</OriginalLoanReference>"), inputXML.length());
-		
-		LOS_EG.mLogger.info("Final Book LOAN Request IS "+inputXML);
-		String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
-		//responseXML=responseXML.replace("&lt;", "<");
-		LOS_EG.mLogger.info("Response for Book LOAN  IS "+responseXML);
-		return IntegrationParser.parseLoanBooking(responseXML, ifr);
-		} 
+			}
+
+
+			//Currecy from product details
+			inputXML = inputXML.substring(0, inputXML.indexOf("<CustomerNo>")) + "<CustomerNo>"+cifID+ inputXML.substring(inputXML.indexOf("</CIF>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<CustomerLocation>")) + "<CustomerLocation>"+""+ inputXML.substring(inputXML.indexOf("</CustomerLocation>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<AccountOfficer>")) + "<AccountOfficer>"+""+ inputXML.substring(inputXML.indexOf("</AccountOfficer>"), inputXML.length());
+
+			inputXML = inputXML.substring(0, inputXML.indexOf("<Branch>")) + "<Branch>"+ branch+ inputXML.substring(inputXML.indexOf("</Branch>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<DealType>")) + "<DealType>"+"VRM"+ inputXML.substring(inputXML.indexOf("</DealType>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<Currency>")) + "<Currency>"+"EGP"+ inputXML.substring(inputXML.indexOf("</Currency>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<Amount>")) + "<Amount>"+LOS_CommonMethods.handleDoubleZeroInRequest(LOS_CommonMethods.getDoubleAmount(data.split("~")[5]))+ inputXML.substring(inputXML.indexOf("</Amount>"), inputXML.length());//Ajay 29Nov
+			inputXML = inputXML.substring(0, inputXML.indexOf("<startDate>")) + "<startDate>"+getLoanStartDate()+ inputXML.substring(inputXML.indexOf("</startDate>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<MaturityDate>")) + "<MaturityDate>"+data.split("~")[2].replace("/", "")+ inputXML.substring(inputXML.indexOf("</MaturityDate>"), inputXML.length());
+
+			inputXML = inputXML.substring(0, inputXML.indexOf("<InterestFrequency>")) + "<InterestFrequency>"+getFrequency(ifr,data.split("~")[1],data.split("~")[3]).split("~")[0]+ inputXML.substring(inputXML.indexOf("</InterestFrequency>"), inputXML.length());
+
+			String[] accountTags = {
+					"ReceivingAccount",
+					"PrincipleAccount",
+					"InterestAccount"
+			};
+
+			for (String tag : accountTags) {
+
+				String accountXml =
+						"<" + tag + ">" +
+								"<Branch>" + branch + "</Branch>" +
+								"<Basic>" + cifID + "</Basic>" +
+								"<Suffix>" + suffix + "</Suffix>" +
+								"</" + tag + ">";
+
+				inputXML = inputXML.replaceAll(
+						"(?s)<" + tag + ">.*?</" + tag + ">",
+						accountXml);
+			}
+			
+			inputXML = inputXML.substring(0, inputXML.indexOf("<LoanAccountSuffix>")) + "<LoanAccountSuffix>"+loanAccountNumber.substring(0, 3)+ inputXML.substring(inputXML.indexOf("</LoanAccountSuffix>"), inputXML.length());
+			
+			inputXML = inputXML.substring(0, inputXML.indexOf("<FirstRepaymentDate>")) + "<FirstRepaymentDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</FirstRepaymentDate>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<FirstPrincipleRepaymentDate>")) + "<FirstPrincipleRepaymentDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</FirstPrincipleRepaymentDate>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<FirstInterestRepaymentDate>")) + "<FirstInterestRepaymentDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</FirstInterestRepaymentDate>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<ChargeAmount1>")) + "<ChargeAmount1>"+""+ inputXML.substring(inputXML.indexOf("</ChargeAmount1>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<LastRepaymentAmount>")) + "<LastRepaymentAmount>"+""+ inputXML.substring(inputXML.indexOf("</LastRepaymentAmount>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<NumberOfRepayments>")) + "<NumberOfRepayments>"+"1"+ inputXML.substring(inputXML.indexOf("</NumberOfRepayments>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<RepaymentFrequency>")) + "<RepaymentFrequency>"+getFrequency(ifr,data.split("~")[1],data.split("~")[3]).split("~")[0]+ inputXML.substring(inputXML.indexOf("</RepaymentFrequency>"), inputXML.length());
+            inputXML = inputXML.substring(0, inputXML.indexOf("<NextInterestDate>")) + "<NextInterestDate>"+""+ inputXML.substring(inputXML.indexOf("</NextInterestDate>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<ReservationReference>")) + "<ReservationReference>"+""+ inputXML.substring(inputXML.indexOf("</ReservationReference>"), inputXML.length());
+			
+			inputXML = inputXML.substring(0, inputXML.indexOf("<NarrativeOnDeal>")) + "<NarrativeOnDeal>"+""+ inputXML.substring(inputXML.indexOf("</NarrativeOnDeal>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<SettlmentNarrative1>")) + "<SettlmentNarrative1>"+""+ inputXML.substring(inputXML.indexOf("</SettlmentNarrative1>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<SettlmentNarrative2>")) + "<SettlmentNarrative2>"+""+ inputXML.substring(inputXML.indexOf("</SettlmentNarrative2>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<SettlmentNarrative3>")) + "<SettlmentNarrative3>"+""+ inputXML.substring(inputXML.indexOf("</SettlmentNarrative3>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<SettlmentNarrative4>")) + "<SettlmentNarrative4>"+""+ inputXML.substring(inputXML.indexOf("</SettlmentNarrative4>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<CommitmentReference>")) + "<CommitmentReference>"+""+ inputXML.substring(inputXML.indexOf("</CommitmentReference>"), inputXML.length());
+			
+			
+			inputXML = inputXML.substring(0, inputXML.indexOf("<InterestAmount>")) + "<InterestAmount>"+""+ inputXML.substring(inputXML.indexOf("</InterestAmount>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<IsDisbursement>")) + "<IsDisbursement>"+""+ inputXML.substring(inputXML.indexOf("</IsDisbursement>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<BankFinancedDisbursement>")) + "<BankFinancedDisbursement>"+""+ inputXML.substring(inputXML.indexOf("</BankFinancedDisbursement>"), inputXML.length());
+
+//			inputXML = inputXML.substring(0, inputXML.indexOf("<RegularAmount>")) + "<RegularAmount>"+LOS_CommonMethods.handleDoubleZeroInRequest(AdminFeeAmount)+ inputXML.substring(inputXML.indexOf("</RegularAmount>"), inputXML.length());//Ajay 29Nov
+//			inputXML = inputXML.substring(0, inputXML.indexOf("<NextInterestDate>")) + "<NextInterestDate>"+data.split("~")[3].replaceAll("/", "")+ inputXML.substring(inputXML.indexOf("</NextInterestDate>"), inputXML.length());
+			
+			inputXML = inputXML.substring(0, inputXML.indexOf("<InstallmentAmount>")) + "<InstallmentAmount>"+""+ inputXML.substring(inputXML.indexOf("</InstallmentAmount>"), inputXML.length());
+			inputXML = inputXML.substring(0, inputXML.indexOf("<InstallmentDate>")) + "<InstallmentDate>"+""+ inputXML.substring(inputXML.indexOf("</InstallmentDate>"), inputXML.length());
+
+			LOS_EG.mLogger.info("Final Book LOAN Request IS "+inputXML);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
+			
+			//responseXML=responseXML.replace("&lt;", "<");
+			LOS_EG.mLogger.info("Response for Book LOAN  IS "+responseXML);
+			return IntegrationParser.parseLoanBooking(responseXML, ifr);
+		}
 		catch (Exception e) {
 
 			LOS_EG.mLogger.info("Iscore error is" + e);
@@ -1559,6 +1740,7 @@ public class Integration_Handler {
 			return "false~Error in fetching data from middleware";
 		}
 	}
+	
 	public static String fetchLoanSummary(IFormReference ifr)
 	{
 		try 
@@ -1574,7 +1756,9 @@ public class Integration_Handler {
 			inputXML= inputXML.substring(0, inputXML.indexOf("<CustID>")) + "<CustID>" +  ifr.getValue("CIF_ID")
 				+ inputXML.substring(inputXML.indexOf("</CustID>"), inputXML.length());
 			LOS_EG.mLogger.info("Final Loan Summary Request IS "+inputXML);
-			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
 			
 			LOS_EG.mLogger.info("Response for LoanSummary  IS "+responseXML);
 			return IntegrationParser.parseLoanSummary(responseXML, ifr);
@@ -1732,7 +1916,9 @@ public class Integration_Handler {
 			inputXML= inputXML.substring(0, inputXML.indexOf("<dateOfBirth>")) + "<dateOfBirth>" +  dateOfBirth
 			+ inputXML.substring(inputXML.indexOf("</dateOfBirth>"), inputXML.length());
 			LOS_EG.mLogger.info("Final Loan fetchCreditScore Request IS "+inputXML);
-			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
 			
 			//LOS_EG.mLogger.info("Response for fetchCreditScore  IS "+responseXML);
 			LOS_EG.mLogger.info("Response for iScore  IS before Replacing "+responseXML);
@@ -1878,7 +2064,10 @@ public class Integration_Handler {
 			inputXML = inputXML.substring(0, inputXML.indexOf("<Nationality>")) + "<Nationality>"+nationality1+ inputXML.substring(inputXML.indexOf("</Nationality>"), inputXML.length());			
 			//inputXML = inputXML.substring(0, inputXML.indexOf("<IdentifierValue>")) + "<IdentifierValue>"+ifr.getValue("Applicant_National_ID")+ inputXML.substring(inputXML.indexOf("</IdentifierValue>"), inputXML.length());				
 			LOS_EG.mLogger.info("Final New iScore Request IS "+inputXML);
-			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
+			
 			LOS_EG.mLogger.info("Response for new iScore  IS before Replacing "+responseXML);
 			responseXML=responseXML.replace("&lt;", "<");
 			responseXML=responseXML.replace("&gt;", ">");
@@ -1968,7 +2157,10 @@ public class Integration_Handler {
 			inputXML = inputXML.substring(0, inputXML.indexOf("<DOB>")) + "<DOB>"+DOB+ inputXML.substring(inputXML.indexOf("</DOB>"), inputXML.length());
 			
 			LOS_EG.mLogger.info("Final iScore Request IS "+inputXML);
-			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
+			
 			LOS_EG.mLogger.info("Response for iScore  IS before Replacing "+responseXML);
 			responseXML=responseXML.replace("&lt;", "<");
 			responseXML=responseXML.replace("&gt;", ">");
@@ -2058,8 +2250,11 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 			
 			LOS_EG.mLogger.info("inputXML for Send SMS : " + inputXML);
 			
-			String responseXML=SocketConnector.getSocketResponse(inputXML,
-			inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML=SocketConnector.getSocketResponse(inputXML,
+//			inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
+			
 			/*String responseXML = "<?xml version=\"1.0\"><AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"SEND_SMS_RS.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID></ReqID><ChSysID></ChSysID><FuncID>SEND_SMS</FuncID><UserID></UserID><TxnRef></TxnRef><TxnDate></TxnDate><Cust></Cust><TxnStatus></TxnStatus><SessLang></SessLang><VerNo></VerNo><SessToken></SessToken><Return><Code>0000</Code><Desc>Success</Desc></Return></ResponseHeader><ResponseBody><SEND_SMS_RS><MessageRefNo></MessageRefNo><MobileNo></MobileNo></SEND_SMS_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>";
 			LOS_EG.mLogger.info("inside send sms response xml" + responseXML);
 			XMLParser xmlParser = new XMLParser();
@@ -2154,8 +2349,11 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 				}	
 			}
 
-			 String responseXML=SocketConnector.getSocketResponse(inputXML,
-			 inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			 String responseXML=SocketConnector.getSocketResponse(inputXML,
+//			 inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
+			
 			/*String responseXML = "<?xml version=\"1.0\"><AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"SEND_SMS_RS.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID></ReqID><ChSysID></ChSysID><FuncID>SEND_SMS</FuncID><UserID></UserID><TxnRef></TxnRef><TxnDate></TxnDate><Cust></Cust><TxnStatus></TxnStatus><SessLang></SessLang><VerNo></VerNo><SessToken></SessToken><Return><Code>0000</Code><Desc>Success</Desc></Return></ResponseHeader><ResponseBody><SEND_SMS_RS><MessageRefNo></MessageRefNo><MobileNo></MobileNo></SEND_SMS_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>";
 			LOS_EG.mLogger.info("inside send sms response xml" + responseXML);
 			XMLParser xmlParser = new XMLParser();
@@ -2479,9 +2677,12 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 				LOS_EG.mLogger.info("inside email value of input xml" + inputXML);
 			}
 
-			 String responseXML=SocketConnector.getSocketResponse(inputXML,
-			 inputDetails.split("~")[1], inputDetails.split("~")[2]);
-			/*String responseXML = "<?xml version=\"1.0\"><AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"AUB_Schema.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID></ReqID><ChSysID></ChSysID><FuncID>SEND_EMAIL</FuncID><UserID></UserID><TxnRef></TxnRef><TxnDate></TxnDate><Cust></Cust><TxnStatus></TxnStatus><SessLang></SessLang><VerNo></VerNo><SessToken></SessToken><Return><Code>0000</Code><Desc>Success</Desc></Return></ResponseHeader><ResponseBody><SEND_EMAIL_RS/></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>";
+//			 String responseXML=SocketConnector.getSocketResponse(inputXML,
+//			 inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			 String responseXML=getRequestURL(inputXML,ifr);
+			 
+			 /*String responseXML = "<?xml version=\"1.0\"><AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"AUB_Schema.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID></ReqID><ChSysID></ChSysID><FuncID>SEND_EMAIL</FuncID><UserID></UserID><TxnRef></TxnRef><TxnDate></TxnDate><Cust></Cust><TxnStatus></TxnStatus><SessLang></SessLang><VerNo></VerNo><SessToken></SessToken><Return><Code>0000</Code><Desc>Success</Desc></Return></ResponseHeader><ResponseBody><SEND_EMAIL_RS/></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>";
 			LOS_EG.mLogger.info("inside send email response xml" + responseXML);
 			XMLParser xmlParser = new XMLParser();
 
@@ -2717,8 +2918,10 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 				
 			LOS_EG.mLogger.info("Input XML for Fetch Customer " + inputXMLCustInfo);
 			
-			String responseXMLCustInfo = SocketConnector.getSocketResponse(inputXMLCustInfo, inputDetailsCustInfo.split("~")[1],
-						inputDetailsCustInfo.split("~")[2]);
+//			String responseXMLCustInfo = SocketConnector.getSocketResponse(inputXMLCustInfo, inputDetailsCustInfo.split("~")[1],
+//						inputDetailsCustInfo.split("~")[2]);
+
+			String responseXMLCustInfo=getRequestURL(inputXMLCustInfo,ifr);
 			
 			LOS_EG.mLogger.info("Output XML for Fetch Customer " + responseXMLCustInfo);
 			
@@ -2747,8 +2950,10 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 					+ inputXML.substring(inputXML.indexOf("</CustomerNo>"), inputXML.length());
 			
 			LOS_EG.mLogger.info("Final input XML for  CD Enq " + inputXML);
-			String responseXML = SocketConnector.getSocketResponse(inputXML,
-					inputDetails.split("~")[1], inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML,
+//					inputDetails.split("~")[1], inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
 			
 			XMLParser xmlParser = new XMLParser();
 			xmlParser.setInputXML(responseXML);
@@ -2797,9 +3002,11 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 							+ inputXMLFDDetails.substring(inputXMLFDDetails.indexOf("</No>"), inputXMLFDDetails.length());
 					
 					LOS_EG.mLogger.info("Final input XML for  FD Enq " + inputXMLFDDetails);
-					String responseXMLFDDetails = SocketConnector.getSocketResponse(inputXMLFDDetails,
-							inputDetailsFDDetails.split("~")[1], inputDetailsFDDetails.split("~")[2]);
-							
+//					String responseXMLFDDetails = SocketConnector.getSocketResponse(inputXMLFDDetails,
+//							inputDetailsFDDetails.split("~")[1], inputDetailsFDDetails.split("~")[2]);
+
+					String responseXMLFDDetails=getRequestURL(inputXMLFDDetails,ifr);
+					
 					LOS_EG.mLogger.info("output XML for  FD Enq " + responseXMLFDDetails);
 					
 					XMLParser xmlParserFDDetails = new XMLParser();
@@ -2911,8 +3118,11 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 				
 			LOS_EG.mLogger.info("Input XML for Create/Maintain Collateral 1 " + inputXMLCollatAddMaint);
 			
-			String responseXMLCollatAddMaint = SocketConnector.getSocketResponse(inputXMLCollatAddMaint, inputDetailsCollatAddMaint.split("~")[1],
-						inputDetailsCollatAddMaint.split("~")[2]);
+//			String responseXMLCollatAddMaint = SocketConnector.getSocketResponse(inputXMLCollatAddMaint, inputDetailsCollatAddMaint.split("~")[1],
+//						inputDetailsCollatAddMaint.split("~")[2]);
+
+			
+			String responseXMLCollatAddMaint=getRequestURL(inputXMLCollatAddMaint,ifr);
 			
 			// String responseXMLCollatAddMaint = "<AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"AUB_Schema.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>RLOS</ReqID><ChSysID>RLOS</ChSysID><FuncID>COLLAT_ADD_MAINT</FuncID><TxnRef>COB2023177379049</TxnRef><TxnDate>20211215152150</TxnDate><Cust><CustEnt><EntID>AUBEG</EntID><CustNIN>27704240101101</CustNIN><CustSys><CustID>351122</CustID><SysID>EQN</SysID></CustSys></CustEnt></Cust><TxnStatus>Y</TxnStatus><SessLang>EN</SessLang><SessToken>UkxPU0AhMTI=</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><COLLAT_ADD_MAINT_RS><CreatedReference>0085QSC467329040319F</CreatedReference></COLLAT_ADD_MAINT_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>"; //Dummy Response
 			LOS_EG.mLogger.info("Output XML for Create/Maintain Collateral " + responseXMLCollatAddMaint);
@@ -2959,8 +3169,10 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 						
 			LOS_EG.mLogger.info("Input XML for Reservation Enquiry " + inputXMLReservationEnquiry);
 			
-			String responseXMLReservationEnquiry = SocketConnector.getSocketResponse(inputXMLReservationEnquiry, inputDetailsReservationEnquiry.split("~")[1],
-						inputDetailsReservationEnquiry.split("~")[2]);
+//			String responseXMLReservationEnquiry = SocketConnector.getSocketResponse(inputXMLReservationEnquiry, inputDetailsReservationEnquiry.split("~")[1],
+//						inputDetailsReservationEnquiry.split("~")[2]);
+
+			String responseXMLReservationEnquiry=getRequestURL(inputXMLReservationEnquiry,ifr);
 			
 			// String responseXMLReservationEnquiry = "<AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"AUB_Schema.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>RLOS</ReqID><ChSysID>RLOS</ChSysID><FuncID>RESERVATION_ENQUIRY</FuncID><TxnRef>COB2022374475449</TxnRef><TxnDate>20211215152150</TxnDate><TxnStatus>Y</TxnStatus><SessLang>EN</SessLang><SessToken>UkxPU0AhMTI=</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><RESERVATION_ENQUIRY_RS><TotalAssigned>000000000900000</TotalAssigned><CollateralDetails><CollateralReference>3014000001152</CollateralReference><CollateralCurrency>EGP</CollateralCurrency><AssignmentPercentage>10</AssignmentPercentage><AssignmentAmount>50000</AssignmentAmount><AvailableAmount>000000007550000</AvailableAmount></CollateralDetails></RESERVATION_ENQUIRY_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>"; //Dummy Response
 			LOS_EG.mLogger.info("Output XML for Reservation Enquiry " + responseXMLReservationEnquiry);
@@ -3075,8 +3287,10 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 						
 			LOS_EG.mLogger.info("Input XML for Reservation Enquiry " + inputXMLReservationEnquiry);
 			
-			String responseXMLReservationEnquiry = SocketConnector.getSocketResponse(inputXMLReservationEnquiry, inputDetailsReservationEnquiry.split("~")[1],
-						inputDetailsReservationEnquiry.split("~")[2]);
+//			String responseXMLReservationEnquiry = SocketConnector.getSocketResponse(inputXMLReservationEnquiry, inputDetailsReservationEnquiry.split("~")[1],
+//						inputDetailsReservationEnquiry.split("~")[2]);
+
+			String responseXMLReservationEnquiry=getRequestURL(inputXMLReservationEnquiry,ifr);
 			
 			// String responseXMLReservationEnquiry = "<AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"AUB_Schema.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>RLOS</ReqID><ChSysID>RLOS</ChSysID><FuncID>RESERVATION_ENQUIRY</FuncID><TxnRef>COB2022374475449</TxnRef><TxnDate>20211215152150</TxnDate><TxnStatus>Y</TxnStatus><SessLang>EN</SessLang><SessToken>UkxPU0AhMTI=</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><RESERVATION_ENQUIRY_RS><TotalAssigned>000000000900000</TotalAssigned><CollateralDetails><CollateralReference>0085G3S464064151020F</CollateralReference><CollateralCurrency>EGP</CollateralCurrency><AssignmentPercentage>65000</AssignmentPercentage><AssignmentAmount>000000008450000</AssignmentAmount><AvailableAmount>000000007550000</AvailableAmount></CollateralDetails></RESERVATION_ENQUIRY_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>"; //Dummy Response
 			LOS_EG.mLogger.info("Output XML for Reservation Enquiry " + responseXMLReservationEnquiry);
@@ -3222,8 +3436,10 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 				
 			LOS_EG.mLogger.info("Input XML for Create/Maintain Collateral 1 " + inputXMLCollatAddMaint);
 			
-			String responseXMLCollatAddMaint = SocketConnector.getSocketResponse(inputXMLCollatAddMaint, inputDetailsCollatAddMaint.split("~")[1],
-						inputDetailsCollatAddMaint.split("~")[2]);
+//			String responseXMLCollatAddMaint = SocketConnector.getSocketResponse(inputXMLCollatAddMaint, inputDetailsCollatAddMaint.split("~")[1],
+//						inputDetailsCollatAddMaint.split("~")[2]);
+
+			String responseXMLCollatAddMaint=getRequestURL(inputXMLCollatAddMaint,ifr);
 			
 			// String responseXMLCollatAddMaint = "<AUB_MESSAGE xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"AUB_Schema.xsd\"><RESPONSE_MESSAGE><ResponseHeader><MsgType>Response</MsgType><ReqID>RLOS</ReqID><ChSysID>RLOS</ChSysID><FuncID>COLLAT_ADD_MAINT</FuncID><TxnRef>COB2023177379049</TxnRef><TxnDate>20211215152150</TxnDate><Cust><CustEnt><EntID>AUBEG</EntID><CustNIN>27704240101101</CustNIN><CustSys><CustID>351122</CustID><SysID>EQN</SysID></CustSys></CustEnt></Cust><TxnStatus>Y</TxnStatus><SessLang>EN</SessLang><SessToken>UkxPU0AhMTI=</SessToken><Return><Code>00000</Code><Desc>SUCCESS</Desc></Return></ResponseHeader><ResponseBody><COLLAT_ADD_MAINT_RS><CreatedReference>0085QSC467329040319F</CreatedReference></COLLAT_ADD_MAINT_RS></ResponseBody></RESPONSE_MESSAGE></AUB_MESSAGE>"; //Dummy Response
 			LOS_EG.mLogger.info("Output XML for Update Collateral " + responseXMLCollatAddMaint);
@@ -3362,8 +3578,11 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 		inputXML = inputXML.substring(0, inputXML.indexOf("<MobileNo>")) + "<MobileNo>" + mobileNo
 		        + inputXML.substring(inputXML.indexOf("</MobileNo>"), inputXML.length());
 		
-		String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
-				inputDetails.split("~")[2]);
+//		String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
+//				inputDetails.split("~")[2]);
+
+		String responseXML=getRequestURL(inputXML,ifr);
+		
 		XMLParser xmlParser = new XMLParser();
 		xmlParser.setInputXML(responseXML);
 		LOS_EG.mLogger.info("xmlParser " + responseXML + " parser "+xmlParser);
@@ -3427,8 +3646,11 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 			inputXML = inputXML.substring(0, inputXML.indexOf("<Currency>")) + "<Currency>" + currency
 			        + inputXML.substring(inputXML.indexOf("</Currency>"), inputXML.length());
 			
-			String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
-					inputDetails.split("~")[2]);
+//			String responseXML = SocketConnector.getSocketResponse(inputXML, inputDetails.split("~")[1],
+//					inputDetails.split("~")[2]);
+
+			String responseXML=getRequestURL(inputXML,ifr);
+			
 			XMLParser xmlParser = new XMLParser();
 			xmlParser.setInputXML(responseXML);
 			LOS_EG.mLogger.info("xmlParser " + responseXML + " parser "+xmlParser);
@@ -3442,4 +3664,45 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 				return "false~Error in creating customer account";
 			}
 		}
+		
+		
+		public static String getRequestURL(String requestXML, IFormReference ifr) throws IOException {
+			
+			Properties prop = new Properties();
+			prop.load(new FileInputStream(System.getProperty("user.dir") + File.separator + "CustomConfig" + File.separator
+					+ "IntegrationInputs.properties"));
+			
+			String isAPINew = prop.get("API_URL_TYPE").toString();
+
+		    String callName = requestXML.substring(requestXML.indexOf("<FuncID>") + 8, requestXML.indexOf("</FuncID>"));
+		    
+		    APIRequestURLMasterMap = RLOSMappingCache.getInstance().getAPIUrlMasterMap(ifr);
+		    String urlString = APIRequestURLMasterMap.get(callName+"#"+isAPINew);
+		    
+		    
+		    /**************************************************Creating Final Request XML ******************************************************************/
+		   
+		    //Changing TxnDate 
+		    if("BILL_PAYMENT".equalsIgnoreCase(callName))
+		    {
+		    	requestXML = requestXML.substring(0, requestXML.indexOf("<TxnDate>")) + "<TxnDate>" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date(new Date().getTime()+1*3600*1000))
+						+ requestXML.substring(requestXML.indexOf("</TxnDate>"), requestXML.length());
+		    }
+		    else
+		    {
+		    requestXML = requestXML.substring(0, requestXML.indexOf("<TxnDate>")) + "<TxnDate>" + new SimpleDateFormat("yyyyMMddHHmmSS").format(new Date(new Date().getTime()+1*3600*1000))
+					+ requestXML.substring(requestXML.indexOf("</TxnDate>"), requestXML.length());
+		    }
+		    //Changing TxnRef
+		    requestXML = requestXML.substring(0, requestXML.indexOf("<TxnRef>")) + "<TxnRef>" +"RLOS"+ Long.toString(System.nanoTime()).substring(0, 13)
+					+ requestXML.substring(requestXML.indexOf("</TxnRef>"), requestXML.length());
+		    //Changing Session Token need to change for Hashing
+		    requestXML = requestXML.substring(0, requestXML.indexOf("<SessToken>")) + "<SessToken>" + prop.get("SESSIONTOKEN")
+					+ requestXML.substring(requestXML.indexOf("</SessToken>"), requestXML.length());
+		    LOS_EG.mLogger.info("Final Request XML" + requestXML);
+		    System.out.println("Final Request XML" + requestXML);
+		    
+		    /**************************************************Creating Final Request XML ******************************************************************/
+		    return HttpConnection.connectURLXML(requestXML, callName, urlString);
+		  }
 }
