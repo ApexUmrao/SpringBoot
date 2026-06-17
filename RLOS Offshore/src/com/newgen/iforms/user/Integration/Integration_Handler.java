@@ -3,6 +3,7 @@ package com.newgen.iforms.user.Integration;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
@@ -11,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -3667,42 +3669,77 @@ public static String Send_SMS(IFormReference ifr, String eventName) {
 		
 		
 		public static String getRequestURL(String requestXML, IFormReference ifr) throws IOException {
-			
-			Properties prop = new Properties();
-			prop.load(new FileInputStream(System.getProperty("user.dir") + File.separator + "CustomConfig" + File.separator
-					+ "IntegrationInputs.properties"));
-			
-			String isAPINew = prop.get("API_URL_TYPE").toString();
 
-		    String callName = requestXML.substring(requestXML.indexOf("<FuncID>") + 8, requestXML.indexOf("</FuncID>"));
-		    
-		    APIRequestURLMasterMap = RLOSMappingCache.getInstance().getAPIUrlMasterMap(ifr);
-		    String urlString = APIRequestURLMasterMap.get(callName+"#"+isAPINew);
-		    
-		    
-		    /**************************************************Creating Final Request XML ******************************************************************/
-		   
-		    //Changing TxnDate 
-		    if("BILL_PAYMENT".equalsIgnoreCase(callName))
-		    {
-		    	requestXML = requestXML.substring(0, requestXML.indexOf("<TxnDate>")) + "<TxnDate>" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date(new Date().getTime()+1*3600*1000))
+
+			Properties prop = new Properties();
+
+			try(FileInputStream fis = new FileInputStream(System.getProperty("user.dir") 
+					+ File.separator + "CustomConfig" + File.separator
+					+ "IntegrationInputs.properties")){
+
+				prop.load(fis);
+
+			}catch (Exception e) {
+				LOS_EG.mLogger.error("Failed to load IntegrationInputs.properties", e);
+				throw new IOException("Unable to load IntegrationInputs.properties", e);
+			}
+
+			String isAPINew = prop.getProperty("API_URL_TYPE", "OLD");
+
+			String requestURL = "";
+			String callName = requestXML.substring(requestXML.indexOf("<FuncID>") + 8, requestXML.indexOf("</FuncID>"));
+
+			APIRequestURLMasterMap = RLOSMappingCache.getInstance().getAPIUrlMasterMap(ifr);
+
+			String key = callName + "#" + isAPINew;
+
+			requestURL = Optional.ofNullable(APIRequestURLMasterMap.get(key))
+					.filter(url -> !url.trim().isEmpty())
+					.orElseGet(() -> {
+
+						if ("NEW".equalsIgnoreCase(isAPINew)) {
+
+							String oldKey = "OldMiddlewareURL#OLD";
+
+							LOS_EG.mLogger.info(
+									"NEW URL not configured for " + key +
+									", falling back to " + oldKey);
+
+							return Optional.ofNullable(APIRequestURLMasterMap.get(oldKey))
+									.filter(url -> !url.trim().isEmpty())
+									.orElseThrow(() -> new IllegalStateException(
+											"Fallback URL not configured for key : " + oldKey));
+						}
+
+						throw new IllegalStateException(
+								"URL not configured for key : " + key);
+					});
+
+			/**************************************************Creating Final Request XML ******************************************************************/
+
+			//Changing TxnDate 
+			if("BILL_PAYMENT".equalsIgnoreCase(callName))
+			{
+				requestXML = requestXML.substring(0, requestXML.indexOf("<TxnDate>")) + "<TxnDate>" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date(new Date().getTime()+1*3600*1000))
 						+ requestXML.substring(requestXML.indexOf("</TxnDate>"), requestXML.length());
-		    }
-		    else
-		    {
-		    requestXML = requestXML.substring(0, requestXML.indexOf("<TxnDate>")) + "<TxnDate>" + new SimpleDateFormat("yyyyMMddHHmmSS").format(new Date(new Date().getTime()+1*3600*1000))
-					+ requestXML.substring(requestXML.indexOf("</TxnDate>"), requestXML.length());
-		    }
-		    //Changing TxnRef
-		    requestXML = requestXML.substring(0, requestXML.indexOf("<TxnRef>")) + "<TxnRef>" +"RLOS"+ Long.toString(System.nanoTime()).substring(0, 13)
+			}
+			else
+			{
+				requestXML = requestXML.substring(0, requestXML.indexOf("<TxnDate>")) + "<TxnDate>" + new SimpleDateFormat("yyyyMMddHHmmSS").format(new Date(new Date().getTime()+1*3600*1000))
+						+ requestXML.substring(requestXML.indexOf("</TxnDate>"), requestXML.length());
+			}
+			//Changing TxnRef
+			requestXML = requestXML.substring(0, requestXML.indexOf("<TxnRef>")) + "<TxnRef>" +"RLOS"+ Long.toString(System.nanoTime()).substring(0, 13)
 					+ requestXML.substring(requestXML.indexOf("</TxnRef>"), requestXML.length());
-		    //Changing Session Token need to change for Hashing
-		    requestXML = requestXML.substring(0, requestXML.indexOf("<SessToken>")) + "<SessToken>" + prop.get("SESSIONTOKEN")
-					+ requestXML.substring(requestXML.indexOf("</SessToken>"), requestXML.length());
-		    LOS_EG.mLogger.info("Final Request XML" + requestXML);
-		    System.out.println("Final Request XML" + requestXML);
-		    
-		    /**************************************************Creating Final Request XML ******************************************************************/
-		    return HttpConnection.connectURLXML(requestXML, callName, urlString);
-		  }
+			//Changing Session Token need to change for Hashing
+			requestXML = requestXML.substring(0, requestXML.indexOf("<SessToken>")) + "<SessToken>" + prop.get("SESSIONTOKEN")
+			+ requestXML.substring(requestXML.indexOf("</SessToken>"), requestXML.length());
+
+			LOS_EG.mLogger.info("Final Request XML" + requestXML);
+			LOS_EG.mLogger.info("Final Request XML" + requestURL);
+
+
+			/**************************************************Creating Final Request XML ******************************************************************/
+			return HttpConnection.connectURLXML(requestXML, callName, requestURL);
+		}
 }
