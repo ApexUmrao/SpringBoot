@@ -983,20 +983,23 @@ public class CommonMethods {
 					continue;
 				}
 
-				String workitem = formatter.formatCellValue(row.getCell(0));
+				String customerCID = formatter.formatCellValue(row.getCell(0));
+				LogMe.logger.info("Customer CID: " + customerCID);
+				
+				String workitem = formatter.formatCellValue(row.getCell(1));
 				LogMe.logger.info("workitem No: " + workitem);
 
-				String threadName = formatter.formatCellValue(row.getCell(1));
+				String threadName = formatter.formatCellValue(row.getCell(2));
 				LogMe.logger.info("Thread Name: " + threadName);
 
-				String status = formatter.formatCellValue(row.getCell(2));
+				String status = formatter.formatCellValue(row.getCell(3));
 				LogMe.logger.info("Status: " + status);
 				
 				
 				if(!"".equalsIgnoreCase(workitem)) {
 					String outputXML = ExecuteXML.executeXML(GenerateXml.apInsertInputXml(strCabName,sessionId,tableName,
-							"WORKITEM_NUMBER,THREAD_NAME,STATUS,CREATEDDATETIME",
-							"'"+workitem+"','"+threadName+"','"+status+"' , SYSDATE"));
+							"CID,WORKITEM_NUMBER,THREAD_NAME,STATUS,CREATEDDATETIME",
+							"'"+customerCID+"','"+workitem+"','"+threadName+"','"+status+"' , SYSDATE"));
 					LogMe.logger.info("insertExcelDataIntoDB outputXML: " + outputXML);
 					insertCount++;
 				}
