@@ -161,7 +161,7 @@ public class HttpConnection  {
 			}
 
 			if (requestXML == null || requestXML.trim().isEmpty()) {
-				LOS_EG.mLogger.warn("Empty request received");
+				LOS_EG.mLogger.info("Empty request received");
 				return "";
 			}
 
@@ -211,7 +211,7 @@ public class HttpConnection  {
 			try {
 				inputStream = conn.getInputStream();
 			} catch (Exception ex) {
-				LOS_EG.mLogger.warn(
+				LOS_EG.mLogger.error(
 						"Using Error Stream due to exception", ex);
 				inputStream = conn.getErrorStream();
 			}
