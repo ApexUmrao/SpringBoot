@@ -3631,7 +3631,7 @@ function Generate_Template_Calling_Function()
 	//if(docname == "Loan Application")		//IC changes
 	
 	
-	//Added by Akash 11-05-26-------Start---------------------------------
+	//Modified by Shivanshu 01-07-26-------Start---------------------------------
 	if(docname == "Intl Commodity Murabaha Fin Contract-Individuals")
 	{		
 		if(getValue("Product_Type") == "PL")
@@ -3752,7 +3752,36 @@ function Generate_Template_Calling_Function()
 
 	}
 	
-	//------------------------------New One Ending-----------------------
+	if(docname == "Murabaha Goods Financing Contract")
+	{		
+		if (getValue("Product_Type") === "MR" && getValue("PROGRAM_TYPE") === "SECURED PERSONAL FINANCES / Goods Murabaha")
+		{	
+			attrbList += murabaha_Services_Contract();
+			docname ="Murabaha Goods Financing Contract";
+		}
+
+	}
+	
+	if(docname == "Goods Murabaha Contracts - Purchase Request")
+	{		
+		if (getValue("Product_Type") === "MR" && getValue("PROGRAM_TYPE") === "SECURED PERSONAL FINANCES / Goods Murabaha")
+		{	
+			attrbList += services_Murabaha_Purchase_Request();
+			docname ="Goods Murabaha Contracts - Purchase Request";
+		}
+
+	}
+	if(docname == "Goods Murabaha Contracts - Delivery Authorization")
+	{		
+		if (getValue("Product_Type") === "MR" && getValue("PROGRAM_TYPE") === "SECURED PERSONAL FINANCES / Goods Murabaha")
+		{	
+			attrbList += services_Murabaha_Delivery_Authorization();
+			docname ="Goods Murabaha Contracts - Delivery Authorization";
+		}
+
+	}
+	
+	//------------------------------Shivanshu Code Ended New One Ending-----------------------
 		//-----------END---------------------------------
 	
 	if(docname == "Finance Application")
