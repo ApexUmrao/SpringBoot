@@ -117,10 +117,13 @@ public class Service implements Callable<List<DocumentDetails>> {
 					        "ORDER BY d.CREATEDDATETIME DESC";
 					
 					
+						LogMe.logger.info("[executeOnWI]" + "executeOnWI sQuery : " + strQuery);
+
+					
 						String xmlqryExtractedfields = ExecuteXML.executeXML(GenerateXml.
 								APSelectWithColumnNames(comObj.strCabName,strQuery,comObj.sessionId));
+						
 						XMLParser parsergetlist = new XMLParser(xmlqryExtractedfields);
-						LogMe.logger.info("[executeOnWI]" + "executeOnWI sQuery : " + strQuery);
 
 						try{
 							//Added by Shivanshu
@@ -171,7 +174,7 @@ public class Service implements Callable<List<DocumentDetails>> {
 	}
 
 	public void downloadDocuments(String fetchedDocuments, String workitemNo , String CID ) throws Exception{
-		LogMe.logger.info("[downloadDocuments]" +"  fetchedDocuments "+fetchedDocuments);
+//		LogMe.logger.info("[downloadDocuments]" +"  fetchedDocuments "+fetchedDocuments);
 		String folderLocation = comObj.strDocDownLoadPath;
 		String JTSIP = comObj.strJTSIP;
 		String JTSPort = comObj.strJTSPORT;
@@ -213,8 +216,12 @@ public class Service implements Callable<List<DocumentDetails>> {
 						String appname = xp2.getValueOf("APPNAME");
 						String volumeID = xp2.getValueOf("VOLUMEID");
 						String name = xp2.getValueOf("NAME");
+						String commnt = xp2.getValueOf("COMMNT");
+						String documentSize = xp2.getValueOf("DOCUMENTSIZE");
 
-						String docName  = name; // Adding key as name # commnt and values will be imageindex # volumid # appname
+
+					//	String docName  = name; // Adding key as name # commnt and values will be imageindex # volumid # appname
+						String docName  = name.trim() +"#"+ documentSize.trim() +"#"+ commnt.trim() ; 
 						JPDBString oSiteName = new JPDBString("adcbedmsuatsite");
 
 						try {
